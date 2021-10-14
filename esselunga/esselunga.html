@@ -1,0 +1,32 @@
+<style>
+  .white-label > text {
+    fill: white;
+  }
+</style>
+
+<script type="text/javascript">
+  RED.nodes.registerType('esselunga', {
+      category: 'exentriq',
+      color: '#51786F',
+      defaults: {
+        name: { value: '' }
+      },
+      inputs: 1,
+      outputs: 0,
+      icon: 'planet-farms.svg',
+      label: function() {
+        return this.name || 'Esselunga';
+      },
+      labelStyle: function() {
+        return 'white-label';
+      },
+      paletteLabel: 'Esselunga'
+  });
+  </script>
+  
+<script type="text/html" data-template-name="esselunga">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+</script>

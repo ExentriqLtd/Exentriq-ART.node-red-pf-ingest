@@ -1,0 +1,21 @@
+{
+  "name": "pf-ingest",
+  "version": "1.0.0",
+  "description": "Node-RED nodes to manage order ingestion",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Paolo Martino",
+  "license": "ISC",
+  "node-red": {
+    "nodes": {
+      "esselunga": "esselunga/esselunga.js"
+    }
+  },
+  "dependencies": {
+    "@fry/bits": "^1.0.2",
+    "js-levenshtein": "^1.1.6",
+    "pdfjs-dist": "^2.10.377",
+    "tesseract.js": "^2.1.5"
+  }
+}
