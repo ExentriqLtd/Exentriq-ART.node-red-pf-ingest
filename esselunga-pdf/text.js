@@ -8,7 +8,7 @@ const analyzeText = (text) => {
     delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>\d{1,2})\/(?<month>\d{1,2})\/(?<year>\d{1,2})/,
     warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>\d{1,2})\.(?<fromMinute>\d{1,2}) ALLE (?<toHour>\d{1,2})\.(?<toMinute>\d{1,2})/,
     products: /(?<code>\d{6})\s*(?<description>[\w\s]*G)\s*(?<quantity>\d*)\s*(?<price>[\d\,\s]*)\n/g,
-    itemCount: /TOTALE COLL[IT]\s*(?<count>\d*)/
+    bankCount: /TOTALE COLL[IT]\s*(?<count>\d*)/
   };
   
   let match;
@@ -27,11 +27,11 @@ const analyzeText = (text) => {
     order.destination = match.groups.address;
   };
 
-  match = text.match(regexes.itemCount);
+  match = text.match(regexes.bankCount);
   if (match
     && match.groups
     && match.groups.count) {
-    order.itemCount = parseInt(match.groups.count);
+    order.bankCount = parseInt(match.groups.count);
   };
 
   match = text.match(regexes.delivery);
@@ -87,17 +87,17 @@ const analyzeText = (text) => {
   
   const totals = order.products.reduce((acc, curr) => {
     return {
-      itemCount: acc.itemCount + curr.quantity,
-      totalPrice: acc.totalPrice + curr.price * curr.quantity
+      bankCount: acc.bankCount + curr.quantity,
+      totalPrice: acc.totalPrice + curr.price * curr.quantity * 8 // items are bank (8 packages each)
     };
-  }, { itemCount: 0, totalPrice: 0 });
+  }, { bankCount: 0, totalPrice: 0 });
   
-  if (totals.itemCount === order.itemCount) {
+  if (totals.bankCount === order.bankCount) {
     order.totalPrice = totals.totalPrice;
     console.log(order);
     return  order;
   } else {
-    throw(new Error(`Calculated item count (${totals.itemCount}) is different from the read item count (${order.itemCount})!`));
+    throw(new Error(`Calculated item count (${totals.bankCount}) is different from the read item count (${order.bankCount})!`));
   }  
 };
 

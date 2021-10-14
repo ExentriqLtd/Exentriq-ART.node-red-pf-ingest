@@ -9,7 +9,7 @@
   "license": "ISC",
   "node-red": {
     "nodes": {
-      "esselunga": "esselunga/esselunga-pdf.js"
+      "esselunga": "esselunga-pdf/esselunga-pdf.js"
     }
   },
   "dependencies": {
