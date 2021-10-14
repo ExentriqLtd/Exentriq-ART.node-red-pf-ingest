@@ -7,7 +7,7 @@ module.exports = function(RED) {
   const { recognizeText } = require('./ocr.js');
   const { analyzeText } = require('./text.js');
 
-  function EsselungaNode(config) {
+  function EsselungaPDFNode(config) {
     RED.nodes.createNode(this, config);
 
     const node = this;
@@ -31,5 +31,5 @@ module.exports = function(RED) {
     });
   }
 
-  RED.nodes.registerType('esselunga', EsselungaNode);
+  RED.nodes.registerType('esselunga-pdf', EsselungaPDFNode);
 }
