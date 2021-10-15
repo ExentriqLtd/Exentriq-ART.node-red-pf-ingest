@@ -12,17 +12,24 @@ module.exports = function(RED) {
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
         send = send || function() { node.send.apply(node, arguments) };
-
         try {
+          const startTime = process.hrtime();
+
           const bitmapBuffer = await extractBitmapBuffer(msg.payload);
           const text = await recognizeText(bitmapBuffer);
           const { documentType, content } = analyzeText(text);
+
+          const elapsedTime = process.hrtime(startTime)[0];
+
+          msg.recognizedText = text;
+          msg.executionTime = `${documentType} processed in ${elapsedTime} seconds`;
           msg.documentType = documentType;
           msg.payload = content;
           send(msg);      
         } catch (error) {
           console.log(error);
         }
+
 
         if (done) {
           done();
