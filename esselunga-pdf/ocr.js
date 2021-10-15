@@ -12,6 +12,7 @@ const recognizeText = async (bitmapBuffer) => {
     await worker.loadLanguage('ita');
     await worker.initialize('ita');
     await worker.setParameters({
+      preserve_interword_spaces: '1',
       user_defined_dpi: '72'
     });
     const { data: { text } } = await worker.recognize(bitmapBuffer);

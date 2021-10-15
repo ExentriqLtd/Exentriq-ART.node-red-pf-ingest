@@ -1,8 +1,6 @@
 module.exports = function(RED) {
   "use strict";
 
-  const path = require('path');
-  const { createWorker } = require('tesseract.js');
   const { extractBitmapBuffer } = require('./bitmap.js');
   const { recognizeText } = require('./ocr.js');
   const { analyzeText } = require('./text.js');
@@ -18,7 +16,9 @@ module.exports = function(RED) {
         try {
           const bitmapBuffer = await extractBitmapBuffer(msg.payload);
           const text = await recognizeText(bitmapBuffer);
-          msg.payload = analyzeText(text);
+          const { documentType, content } = analyzeText(text);
+          msg.documentType = documentType;
+          msg.payload = content;
           send(msg);      
         } catch (error) {
           console.log(error);
