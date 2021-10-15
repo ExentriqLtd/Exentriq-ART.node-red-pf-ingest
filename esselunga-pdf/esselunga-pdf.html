@@ -5,22 +5,37 @@
 </style>
 
 <script type="text/javascript">
+
+  const products = [
+    { code: '755001', description: 'YUMMIX DELICATO 80 G' },
+    { code: '755002', description: 'YUMMIX ORIENTALE 80 G' },
+    { code: '755003', description: 'YUMMIX PICCANTE 80 G' },
+    { code: '755005', description: 'LATTUGOOD 80 G' }
+  ];
+
   RED.nodes.registerType('esselunga-pdf', {
-      category: 'exentriq',
-      color: '#51786F',
-      defaults: {
-        name: { value: '' }
-      },
-      inputs: 1,
-      outputs: 0,
-      icon: 'planet-farms.svg',
-      label: function() {
-        return this.name || 'Esselunga PDF';
-      },
-      labelStyle: function() {
-        return 'white-label';
-      },
-      paletteLabel: 'Esselunga PDF'
+    category: 'exentriq',
+    color: '#51786F',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(products) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'planet-farms.svg',
+    label: function() {
+      return this.name || 'Esselunga PDF';
+    },
+    labelStyle: function() {
+      return 'white-label';
+    },
+    paletteLabel: 'Esselunga PDF',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+    }
   });
   </script>
   
@@ -28,5 +43,9 @@
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
+    <input type="text" id="node-input-products">
   </div>
 </script>
