@@ -15,6 +15,7 @@ const recognizeText = async (bitmapBuffer) => {
       preserve_interword_spaces: '1',
       user_defined_dpi: '72'
     });
+
     const { data: { text } } = await worker.recognize(bitmapBuffer);
     await worker.terminate();
     return text;

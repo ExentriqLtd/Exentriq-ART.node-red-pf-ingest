@@ -15,13 +15,13 @@ module.exports = function(RED) {
     PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' }
   });
 
-  const processPDF = async (pdf) => {
+  const processPDF = async (pdf, products) => {
 
     const startTime = process.hrtime();
 
     const bitmapBuffer = await extractBitmapBuffer(pdf);
     const text = await recognizeText(bitmapBuffer);
-    const { documentType, content } = analyzeText(text);
+    const { documentType, content } = analyzeText(text, products);
 
     const elapsedTime = process.hrtime(startTime)[0];
 
@@ -55,13 +55,13 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, config);
 
     const node = this;
-
     const context = node.context();
     context.queue = context.queue || [];
-
     context.status = context.queue.length === 0 ? Status.AVAILABLE : Status.PROCESSING;
 
     setNodeStatus(node);
+
+    const products = JSON.parse(config.products);
 
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
@@ -79,7 +79,7 @@ module.exports = function(RED) {
               const pdf = context.queue.shift();
               context.status = Status.PROCESSING;
               setNodeStatus(node);
-              const result = await processPDF(pdf);
+              const result = await processPDF(pdf, products);
 
               send({
                 recognizedText: result.text,

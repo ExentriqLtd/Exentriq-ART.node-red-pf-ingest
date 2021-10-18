@@ -1,6 +1,9 @@
+const levenshtein = require('js-levenshtein');
+
 const regexes = {
   order: {
     number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/\d*) DEL/,
+    overrides: /ATTENZIONE: IL PRESENTE ORDINE DEL .* SOSTITUISCE IL\nPRECEDENTE INVIATO IL .* CON IL MEDESIMO CODICE/,
     date: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*.*DEL\s*(?<day>\d{2})\/(?<month>\d{2})\/(?<year>\d{4})/,
     destination: /^(?<address>.*)$\n^ATTENZIONE: IL NOSTRO/m,
     delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>\d{1,2})\/(?<month>\d{1,2})\/(?<year>\d{1,2})/,
@@ -40,7 +43,20 @@ const fixDatePart = (datePart) => {
 
 };
 
-const analyzeOrder = (text) => {
+const findMatchingProduct = (code, products) => {
+  let score = 999;
+  let matchingProduct;
+  for (const product of products) {
+    const distance = levenshtein(code, product.code);
+    if (distance < score) {
+      matchingProduct = product;
+      score = distance;
+    }
+  }
+  return matchingProduct;
+};
+
+const analyzeOrder = (text, products) => {
 
   const order = {
     anomalies: []
@@ -54,6 +70,9 @@ const analyzeOrder = (text) => {
   } else {
     order.anomalies.push('Order number not recognized');
   }
+
+  match = text.match(regexes.order.overrides);
+  order.overrides = match ? true : false;
 
   match = text.match(regexes.order.date);
   if (match) {
@@ -154,7 +173,7 @@ const analyzeOrder = (text) => {
   return order;
 };
 
-const analyzeConfirmation = (text) => {
+const analyzeConfirmation = (text, products) => {
 
   const confirmation = {
     products: [],
@@ -205,6 +224,23 @@ const analyzeConfirmation = (text) => {
         unitCost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
         totalCost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
       };
+
+      if (product.totalCost.toFixed(4) !== (product.items * product.unitCost).toFixed(4)) {
+        if ((Math.floor(product.totalCost / 1000) === 2)
+          && ((parseInt(product.totalCost) % 10) === 9)
+        ) {
+          const fixedTotalCost = (parseInt(product.totalCost) - 9) / 10 + product.totalCost - parseInt(product.totalCost);
+          if (fixedTotalCost.toFixed(4) === (product.items * product.unitCost).toFixed(4)) {
+            product.totalCost = parseFloat((fixedTotalCost).toFixed(4));
+          }
+        }
+      }
+
+      if (product.code) {
+        const matchingProduct = findMatchingProduct(product.code, products);
+        product.code = matchingProduct.code;
+        product.description = matchingProduct.description;
+      }
       confirmation.products.push(product);
     }
   } else {
@@ -267,7 +303,7 @@ const documentTypes = [
   }
 ];
 
-const analyzeText = (text) => {
+const analyzeText = (text, products) => {
 
   let result;
 
@@ -275,7 +311,7 @@ const analyzeText = (text) => {
     if (text.search(documentType.needle) > -1) {
       result = {
         documentType: documentType.name,
-        content: documentType.analyzer(text)
+        content: documentType.analyzer(text, products)
       };
       break;
     }
