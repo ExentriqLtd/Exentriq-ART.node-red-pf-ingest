@@ -1,25 +1,47 @@
 const getDateFromString = (stringDate) => {
 
-  const options = {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  };
-
   try {
-    return new Date(stringDate.slice(6, 10), stringDate.slice(3, 5), stringDate.slice(0, 2), 10, 00).toLocaleDateString('it-IT', options);  
+    return new Date(parseInt(stringDate.slice(6, 10)), parseInt(stringDate.slice(3, 5)) - 1, parseInt(stringDate.slice(0, 2)), 10, 00).toISOString().slice(0, 10);
   } catch (error) {
     throw ('Invalid date');
   }
 
 };
 
-const analyzeOrder = (items, products) => {
+const getDateFromFilename = (filename) => {
+
+  // RiscontroDDT_20211012_35180.pdf
+
+  const chunks = filename.split('_');
+  if (chunks.length === 3) {
+    const stringDate = chunks[1];
+    try {
+      return new Date(parseInt(stringDate.slice(0, 4)), parseInt(stringDate.slice(4, 6)) - 1, parseInt(stringDate.slice(6, 8)), 10, 00).toISOString().slice(0, 10);
+    } catch (error) {
+      throw('Invalid date');
+    }
+
+  }
+};
+
+
+const analyzeOrder = (items, products, filename) => {
 
   const order = {
     anomalies: [],
+    number: null,
     overrides: false,
+    date: null,
+    delivery: null,
+    destination: {
+      address: null,
+      from: null,
+      to: null
+    },
+    products: [],
     totals: {
       banks: 0,
-      items: 0,
+      items: 0
     }
   };
 
@@ -27,7 +49,6 @@ const analyzeOrder = (items, products) => {
 
   if (index > -1 && items[index + 1] === '') {
     const productCount = ((items.length - (index + 2)) / 9);
-    order.products = [];
 
     for (const product of products) {
       const index = items.indexOf(product.code);
@@ -44,7 +65,6 @@ const analyzeOrder = (items, products) => {
         order.totals.banks += orderProduct.banks;
         order.totals.items += orderProduct.items;
         order.products.push(orderProduct);
-        break;
       }
     }
   
@@ -84,7 +104,7 @@ const analyzeOrder = (items, products) => {
       order.anomalies.push('Delivery date is not valid');
     }
     try {
-      order.destination = `${items[index + 3]} - ${items[index + 4]}`;      
+      order.destination.address = `${items[index + 3]} - ${items[index + 4]}`;      
     } catch (error) {
       order.anomalies.push('Destination not recognized');
     }
@@ -93,10 +113,16 @@ const analyzeOrder = (items, products) => {
   return order;
 };
 
-const analyzeConfirmation = (items, products) => {
+const analyzeConfirmation = (items, products, filename) => {
 
   const confirmation = {
     anomalies: [],
+    date: null,
+    order: null,
+    shipping: {
+      code: null,
+      date: null
+    },
     products: [],
     totals: {
       banks: 0,
@@ -104,6 +130,10 @@ const analyzeConfirmation = (items, products) => {
       cost: 0
     }
   };
+
+  if (filename) {
+    confirmation.date = getDateFromFilename(filename);
+  }
 
   for (const product of products) {
     const index = items.indexOf(product.code);
@@ -128,9 +158,6 @@ const analyzeConfirmation = (items, products) => {
 
   const index = items.indexOf('Vostro D.D.T. di consegna numero');
   if (index > -1) {
-    confirmation.shipping = {
-
-    };
     try {
       confirmation.shipping.code = items[index + 1];
     } catch (error) {
@@ -162,7 +189,7 @@ const documentTypes = [
 ];
 
 
-const analyzeText = (text, products) => {
+const analyzeText = (text, products, filename = null) => {
 
   let result;
 
@@ -170,7 +197,7 @@ const analyzeText = (text, products) => {
     if (text.items.filter(x => x.str.startsWith(documentType.needle)).length === 1) {
       result = {
         documentType: documentType.name,
-        content: documentType.analyzer(text.items.map(x => x.str.trim()), products)
+        content: documentType.analyzer(text.items.map(x => x.str.trim()), products, filename)
       };
       break;
     }

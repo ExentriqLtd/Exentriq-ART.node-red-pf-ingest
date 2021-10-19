@@ -24,6 +24,16 @@ const months = [
   'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'
 ];
 
+const getDateFromObject = (objectDate) => {
+
+  try {
+    return new Date(objectDate.year + (objectDate.year < 2000 ? 2000 : 0), objectDate.month - 1, objectDate.day, 10, 00).toISOString().slice(0, 10);  
+  } catch (error) {
+    throw ('Invalid date');
+  }
+
+};
+
 const fixDatePart = (datePart) => {
 
   if (datePart === 109) {
@@ -60,6 +70,16 @@ const analyzeOrder = (text, products) => {
 
   const order = {
     anomalies: [],
+    number: null,
+    overrides: false,
+    date: null,
+    delivery: null,
+    destination: {
+      address: null,
+      from: null,
+      to: null
+    },
+    products: [],
     totals: {
       banks: 0,
       items: 0
@@ -83,21 +103,15 @@ const analyzeOrder = (text, products) => {
   if (match) {
     const orderDate = {
       day:  parseInt(match.groups.day),
-      month: parseInt(match.groups.month) - 1,
+      month: parseInt(match.groups.month),
       year: parseInt(match.groups.year)
     };
 
-    if (orderDate.day > 80) {
-      orderDate.day -= 80;
-    } else if (orderDate.day > 60) {
-      orderDate.day -= 60;
-    }
+    orderDate.day = fixDatePart(orderDate.day);
+    orderDate.month = fixDatePart(orderDate.month);
 
-    const options = {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    };
     try {
-      order.date = new Date(orderDate.year, orderDate.month, orderDate.day, 10, 00).toLocaleDateString('it-IT', options);      
+      order.date = getDateFromObject(orderDate);
     } catch (error) {
       order.anomalies.push('Order date is not valid');
     }
@@ -107,7 +121,7 @@ const analyzeOrder = (text, products) => {
 
   match = text.match(regexes.order.destination);
   if (match) {
-    order.destination = match.groups.address.replace(/\s{2,}/g, ' ');
+    order.destination.address = match.groups.address.replace(/\s{2,}/g, ' ');
   } else {
     oreder.anomalies.push('Destination address not recognized');
   }
@@ -123,14 +137,11 @@ const analyzeOrder = (text, products) => {
   if (match) {
     const deliveryDate = {
       day:  parseInt(match.groups.day),
-      month: parseInt(match.groups.month) - 1,
-      year: parseInt(match.groups.year) + 2000
-    };
-    const options = {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      month: parseInt(match.groups.month),
+      year: parseInt(match.groups.year)
     };
     try {
-      order.delivery = new Date(deliveryDate.year, deliveryDate.month, deliveryDate.day, 10, 00).toLocaleDateString('it-IT', options);      
+      order.delivery = getDateFromObject(deliveryDate);
     } catch (error) {
       order.anomalies.push('Delivery date is not valid');
     }
@@ -140,17 +151,14 @@ const analyzeOrder = (text, products) => {
 
   match = text.match(regexes.order.warehouse);
   if (match) {
-    order.warehouse = {
-      from: `${match.groups.fromHour}:${match.groups.fromMinute}`,
-      to: `${match.groups.toHour}:${match.groups.toMinute}`
-    }
+    order.destination.from = `${match.groups.fromHour}:${match.groups.fromMinute}`;
+    order.destination.to = `${match.groups.toHour}:${match.groups.toMinute}`;
   } else {
     order.anomalies.push('Warehouse opening hours not recognized');
   }
 
   const matches = [...text.matchAll(regexes.order.products)];
   if (matches.length > 0) {
-    order.products = [];
     for (const match of matches) {
 
       const code = match.groups.code.trim();
@@ -189,17 +197,34 @@ const analyzeOrder = (text, products) => {
 
 const analyzeConfirmation = (text, products) => {
 
+  // const confirmation = {
+  //   products: [],
+  //   totals: {},
+  //   anomalies: []
+  // };
+
   const confirmation = {
+    anomalies: [],
+    date: null,
+    order: null,
+    shipping: {
+      code: null,
+      date: null
+    },
     products: [],
-    totals: {},
-    anomalies: []
+    totals: {
+      banks: 0,
+      items: 0,
+      cost: 0
+    }
   };
+
 
   let match;
   
   match = text.match(regexes.confirmation.number);
   if (match) {
-    confirmation.orderNumber = match.groups.number;
+    confirmation.order = match.groups.number;
   } else {
     confirmation.anomalies.push('Order number not recognized');
   }
@@ -208,18 +233,15 @@ const analyzeConfirmation = (text, products) => {
   if (match) {
     const confirmationDate = {
       day:  parseInt(match.groups.day),
-      month: months.indexOf(match.groups.month.toLowerCase()),
+      month: months.indexOf(match.groups.month.toLowerCase()) + 1,
       year: parseInt(match.groups.year)
     };
 
     confirmationDate.day = fixDatePart(confirmationDate.day);
     confirmationDate.month = fixDatePart(confirmationDate.month);
 
-    const options = {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    };
     try {
-      confirmation.date = new Date(confirmationDate.year, confirmationDate.month, confirmationDate.day, 10, 00).toLocaleDateString('it-IT', options);      
+      confirmation.date = getDateFromObject(confirmationDate);
     } catch (error) {
       confirmation.anomalies.push('Confirmation date is not valid');
     }

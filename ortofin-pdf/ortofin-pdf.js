@@ -13,12 +13,12 @@ module.exports = function(RED) {
     PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' }
   });
 
-  const processPDF = async (pdf, products) => {
+  const processPDF = async (pdf, products, filename = null) => {
 
     const startTime = process.hrtime();
 
     const text = await extractTextFromPDF(pdf);
-    const { documentType, content } = analyzeText(text, products);
+    const { documentType, content } = analyzeText(text, products, filename);
 
     const elapsedTime = process.hrtime(startTime)[0];
 
@@ -64,6 +64,8 @@ module.exports = function(RED) {
       if (msg.hasOwnProperty('payload')) {
         send = send || function() { node.send.apply(node, arguments) };
 
+        const filename = msg.hasOwnProperty('filename') ? msg.filename : null;
+
         try {
 
           context.queue.push(msg.payload);
@@ -76,7 +78,7 @@ module.exports = function(RED) {
               const pdf = context.queue.shift();
               context.status = Status.PROCESSING;
               setNodeStatus(node);
-              const result = await processPDF(pdf, products);
+              const result = await processPDF(pdf, products, filename);
 
               send({
                 recognizedText: result.text,
