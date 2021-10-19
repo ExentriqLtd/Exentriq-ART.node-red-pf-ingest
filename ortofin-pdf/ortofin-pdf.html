@@ -6,30 +6,30 @@
 
 <script type="text/javascript">
 
-  const productsEsselunga = [
-    { code: '755001', description: 'Yummix Delicato 80g', bankItems: 8 },
-    { code: '755002', description: 'Yummix Orientale 80g', bankItems: 8 },
-    { code: '755003', description: 'Yummix Piccante 80g', bankItems: 8 },
-    { code: '755005', description: 'Lattugood 80g', bankItems: 8 }
-  ];
+const productsOrtofin = [
+  { code: '0350303021', description: 'Yummix Delicato 80g', bankItems: 8 },
+  { code: '0350303019', description: 'Yummix Orientale 80g', bankItems: 8 },
+  { code: '0350303020', description: 'Yummix Piccante 80g', bankItems: 8 },
+  { code: '0350303022', description: 'Lattugood 80g', bankItems: 8 }
+];
 
-  RED.nodes.registerType('esselunga-pdf', {
+  RED.nodes.registerType('ortofin-pdf', {
     category: 'exentriq',
     color: '#51786F',
     defaults: {
       name: { value: '' },
-      products: { value: JSON.stringify(productsEsselunga) }
+      products: { value: JSON.stringify(productsOrtofin) }
     },
     inputs: 1,
     outputs: 1,
-    icon: 'esselunga.svg',
+    icon: 'ortofin.svg',
     label: function() {
-      return this.name || 'Esselunga';
+      return this.name || 'Ortofin';
     },
     labelStyle: function() {
       return 'white-label';
     },
-    paletteLabel: 'Esselunga',
+    paletteLabel: 'Ortofin',
     oneditprepare: function() {
       $("#node-input-products").typedInput({
         type:"json",
@@ -39,7 +39,7 @@
   });
   </script>
   
-<script type="text/html" data-template-name="esselunga-pdf">
+<script type="text/html" data-template-name="ortofin-pdf">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">

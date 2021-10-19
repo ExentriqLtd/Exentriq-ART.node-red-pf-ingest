@@ -1,7 +1,6 @@
 module.exports = function(RED) {
 
-  const { extractBitmapBuffer } = require('./bitmap.js');
-  const { recognizeText } = require('./ocr.js');
+  const { extractTextFromPDF } = require('./extract.js');
   const { analyzeText } = require('./text.js');
 
   /**
@@ -18,8 +17,7 @@ module.exports = function(RED) {
 
     const startTime = process.hrtime();
 
-    const bitmapBuffer = await extractBitmapBuffer(pdf);
-    const text = await recognizeText(bitmapBuffer);
+    const text = await extractTextFromPDF(pdf);
     const { documentType, content } = analyzeText(text, products);
 
     const elapsedTime = process.hrtime(startTime)[0];
@@ -50,7 +48,7 @@ module.exports = function(RED) {
 
   };
 
-  function EsselungaPDFNode(config) {
+  function OrtofinPDFNode(config) {
     RED.nodes.createNode(this, config);
 
     const node = this;
@@ -103,5 +101,5 @@ module.exports = function(RED) {
     });
   }
 
-  RED.nodes.registerType('esselunga-pdf', EsselungaPDFNode);
+  RED.nodes.registerType('ortofin-pdf', OrtofinPDFNode);
 }

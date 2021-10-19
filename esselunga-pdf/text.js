@@ -59,10 +59,15 @@ const findMatchingProduct = (code, products) => {
 const analyzeOrder = (text, products) => {
 
   const order = {
-    anomalies: []
+    anomalies: [],
+    totals: {
+      banks: 0,
+      items: 0
+    }
   };
   
   let match;
+  let banks = 0;
 
   match = text.match(regexes.order.number);
   if (match) {
@@ -109,7 +114,7 @@ const analyzeOrder = (text, products) => {
 
   match = text.match(regexes.order.bankCount);
   if (match) {
-    order.bankCount = parseInt(match.groups.count.replace('.', ''));
+    banks = parseInt(match.groups.count.replace('.', ''));
   } else {
     order.anomalies.push('Total bank count not recognized');
   }
@@ -147,29 +152,38 @@ const analyzeOrder = (text, products) => {
   if (matches.length > 0) {
     order.products = [];
     for (const match of matches) {
-      const product = {
-        code: match.groups.code.trim(),
-        description: match.groups.description.trim(),
-        quantity: parseInt(match.groups.quantity),
-        cost: parseFloat(match.groups.cost.replace(/\s*/g, '').replace(',', '.'))
-      };
-      order.products.push(product);
+
+      const code = match.groups.code.trim();
+      const matchingProduct = products.find(x => x.code === code);
+
+      if (matchingProduct) {
+        const orderProduct = {
+          code: matchingProduct.code,
+          description: matchingProduct.description,
+          banks: parseInt(match.groups.quantity),
+        };
+        orderProduct.items = orderProduct.banks * matchingProduct.bankItems;
+        order.products.push(orderProduct);
+        order.totals.banks += orderProduct.banks
+        order.totals.items += orderProduct.items;
+      } else {
+        order.anomalies.push(`Product code ${code} not found`);
+      }
     }
   } else {
     order.anomalies.push('Products not recognized');
   }
   
-  const totals = order.products.reduce((acc, curr) => {
-    return {
-      bankCount: acc.bankCount + curr.quantity,
-      totalCost: acc.totalCost + curr.cost * curr.quantity * 8 // items are bank (8 packages each)
-    };
-  }, { bankCount: 0, totalCost: 0 });
+  // const totals = order.products.reduce((acc, curr) => {
+  //   return {
+  //     banks: acc.banks + curr.banks
+  //   };
+  // }, { banks: 0 });
   
-  if (totals.bankCount !== order.bankCount) {
-    order.anomalies.push(`Calculated item count (${totals.bankCount}) is different from the read item count (${order.bankCount})`);
+  if (order.totals.banks !== banks) {
+    order.anomalies.push(`Calculated bank count (${order.totals.banks}) is different from the read bank count (${banks})`);
   }
-  order.totalCost = totals.totalCost;
+
   return order;
 };
 
@@ -240,6 +254,11 @@ const analyzeConfirmation = (text, products) => {
         const matchingProduct = findMatchingProduct(product.code, products);
         product.code = matchingProduct.code;
         product.description = matchingProduct.description;
+
+        if (product.items !== product.banks * matchingProduct.bankItems) {
+          confirmation.anomalies.push(`Product "${product.description}": item count (${product.items}) is not equal to bank count (${product.banks}) multiplied by ${matchingProduct.bankItems}`);
+        }
+
       }
       confirmation.products.push(product);
     }
