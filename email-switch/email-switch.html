@@ -6,7 +6,7 @@
 
 <script type="text/javascript">
 
-  const customers = [
+  const defaultRules = [
     { name: 'Esselunga', domains: [ 'esselunga.it' ] },
     { name: 'Ortofin',   domains: [ 'ortofin.it' ] }
   ];
@@ -17,8 +17,7 @@
     defaults: {
       name: { value: '' },
       outputs: { value: 2 },
-      rules: { value: [ { v: '' } ] },
-      customers
+      rules: { value: defaultRules.map(x => { return { v: JSON.stringify(x) }; }) }
     },
     inputs: 1,
     outputs: 2,
