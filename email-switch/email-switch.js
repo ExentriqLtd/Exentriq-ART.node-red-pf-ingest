@@ -3,39 +3,41 @@ module.exports = function(RED) {
   function EmailSwitchNode(config) {
     RED.nodes.createNode(this, config);
 
-    const customers = [
-      { name: 'Esselunga', domains: [ 'esselunga.it' ] },
-      { name: 'Ortofin',   domains: [ 'ortofin.it' ] }
-    ];
-
     const node = this;
-    const numberOfOutputs = config.outputs;
 
-    const getOutputFromAddress = (address) => {
+    const getOutputPortFromAddress = (address, rules) => {
 
       if (address.indexOf('@') > -1) {
         const domain = address.split('@')[1];
-        const customer = customers.find(x => {
+        const rule = rules.find(x => {
           return x.domains.map(y => y.split('.')).find(y => JSON.stringify(y) == JSON.stringify(domain.split('.').slice(-y.length)));
         });
-
-        // const customer = customers.find(x => x.domains.indexOf(address.split('@')[1]) > -1);
-        return customer ? customers.indexOf(customer) : null;
+        return rule ? rules.indexOf(rule) : null;
       }
       return null;
+    };
+
+    const extractPDFAttachment = (attachments) => {
+      return attachments.find(x => (x.contentType === 'application/pdf' && x.size > 0));
     };
 
     this.on('input', async (msg, send, done) => {
         // send = send || function() { node.send.apply(node, arguments) };
         try {
 
-          node.send({
-            payload: {
-              address: msg.from,
-              output: getOutputFromAddress(msg.from),
-              outputs: numberOfOutputs
+          const rules = config.rules.map(x => JSON.parse(x));
+          const port = getOutputPortFromAddress(msg.from, rules);
+          if (port) {
+            const attachment = extractPDFAttachment(msg.attachments);
+            if (attachment) {
+              const messages = new Array(rules.length);
+              messages[port] = {
+                payload: attachment.content,
+                filename: attachment.filename
+              };
+              node.send(messages);
             }
-          });
+          }
 
         } catch (error) {
           console.log(error);

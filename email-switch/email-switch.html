@@ -16,11 +16,10 @@
     color: '#51786F',
     defaults: {
       name: { value: '' },
-      outputs: { value: 2 },
-      rules: { value: defaultRules.map(x => { return { v: JSON.stringify(x) }; }) }
+      outputs: { value: defaultRules.length },
+      rules: { value: defaultRules.map(x => JSON.stringify(x)) }
     },
     inputs: 1,
-    outputs: 2,
     icon: 'email.svg',
     label: function() {
       return this.name || 'email switch';
@@ -33,7 +32,7 @@
       const rule = this.rules[index];
       if (rule) {
         try {
-          return JSON.parse(this.rules[index].v).name;
+          return JSON.parse(this.rules[index]).name;
         } catch (error) {}
       }
       return '';
@@ -52,7 +51,7 @@
       $('#node-input-rule-container').css('min-height','150px').css('min-width','450px').editableList({
         addItem: function(container, i, opt) {
           if (!opt.hasOwnProperty('r')) {
-            opt.r = {};
+            opt.r = '';
           }
           const rule = opt.r;
           if (!opt.hasOwnProperty('i')) {
@@ -70,7 +69,7 @@
           }
 
           const valueField = createValueField();
-          valueField.typedInput('value', rule.v);
+          valueField.typedInput('value', rule);
 
           const finalspan = $('<span/>',{style:"float: right;margin-top: 10px;"}).appendTo(row);
           finalspan.append(' &#8594; <span class="node-input-rule-index">' + (i + 1) + '</span> ');
@@ -125,8 +124,7 @@
       rules.each(function(i) {
         const ruleData = $(this).data('data');
         const rule = $(this);
-        var r = {};
-        r.v = rule.find('.node-input-rule-value').typedInput('value');
+        const r = rule.find('.node-input-rule-value').typedInput('value');
         node.rules.push(r);
       });
   },
