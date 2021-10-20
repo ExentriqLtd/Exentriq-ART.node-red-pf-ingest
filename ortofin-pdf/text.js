@@ -28,6 +28,7 @@ const getDateFromFilename = (filename) => {
 const analyzeOrder = (items, products, filename) => {
 
   const order = {
+    customer: 'Ortofin',
     anomalies: [],
     number: null,
     overrides: false,
@@ -116,6 +117,7 @@ const analyzeOrder = (items, products, filename) => {
 const analyzeConfirmation = (items, products, filename) => {
 
   const confirmation = {
+    customer: 'Ortofin',
     anomalies: [],
     date: null,
     order: null,

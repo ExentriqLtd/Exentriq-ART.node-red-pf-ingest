@@ -69,6 +69,7 @@ const findMatchingProduct = (code, products) => {
 const analyzeOrder = (text, products) => {
 
   const order = {
+    customer: 'Esselunga',
     anomalies: [],
     number: null,
     overrides: false,
@@ -204,6 +205,7 @@ const analyzeConfirmation = (text, products) => {
   // };
 
   const confirmation = {
+    customer: 'Esselunga',
     anomalies: [],
     date: null,
     order: null,
