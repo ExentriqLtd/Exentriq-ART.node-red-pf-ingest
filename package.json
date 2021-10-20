@@ -15,6 +15,7 @@
   },
   "node-red": {
     "nodes": {
+      "email-switch": "email-switch/email-switch.js",
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js"
     }
