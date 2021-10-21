@@ -11,7 +11,7 @@
     { name: 'Ortofin',   domains: [ 'ortofin.it' ] }
   ];
 
-  RED.nodes.registerType('email-switch', {
+  RED.nodes.registerType('attachment-switch', {
     category: 'exentriq',
     color: '#51786F',
     defaults: {
@@ -20,14 +20,14 @@
       rules: { value: defaultRules.map(x => JSON.stringify(x)) }
     },
     inputs: 1,
-    icon: 'email.svg',
+    icon: 'attachment.svg',
     label: function() {
-      return this.name || 'email switch';
+      return this.name || 'attachment switch';
     },
     labelStyle: function() {
       return 'white-label';
     },
-    paletteLabel: 'email switch',
+    paletteLabel: 'attachment switch',
     outputLabels: function(index) {
       const rule = this.rules[index];
       if (rule) {
@@ -142,7 +142,7 @@
   });
   </script>
   
-<script type="text/html" data-template-name="email-switch">
+<script type="text/html" data-template-name="attachment-switch">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">

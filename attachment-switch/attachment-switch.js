@@ -49,5 +49,5 @@ module.exports = function(RED) {
     });
   }
 
-  RED.nodes.registerType('email-switch', EmailSwitchNode);
+  RED.nodes.registerType('attachment-switch', EmailSwitchNode);
 }
