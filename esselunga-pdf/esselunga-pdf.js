@@ -11,25 +11,28 @@ module.exports = function(RED) {
    */
   const Status = Object.freeze({
     AVAILABLE: { text: 'available', fill: 'green', shape: 'dot' },
-    PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' }
+    PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' },
+    ERROR: { text: 'error', fill: 'red', shape: 'dot' }
   });
 
   const processPDF = async (pdf, products) => {
 
-    const startTime = process.hrtime();
+    try {
 
-    const bitmapBuffer = await extractBitmapBuffer(pdf);
-    const text = await recognizeText(bitmapBuffer);
-    const { documentType, content } = analyzeText(text, products);
+      const bitmapBuffer = await extractBitmapBuffer(pdf);
+      const text = await recognizeText(bitmapBuffer);
+      const { documentType, content } = analyzeText(text, products);  
+  
+      return {
+        text,
+        documentType,
+        content
+      };
+        
+    } catch (error) {
+      throw(error);
+    }
 
-    const elapsedTime = process.hrtime(startTime)[0];
-
-    return {
-      elapsedTime,
-      text,
-      documentType,
-      content
-    };
   
   };
 
@@ -82,7 +85,6 @@ module.exports = function(RED) {
 
               send({
                 recognizedText: result.text,
-                executionTime: `${result.documentType} processed in ${result.elapsedTime} seconds`,
                 documentType: result.documentType,
                 payload: result.content
               });
@@ -93,7 +95,13 @@ module.exports = function(RED) {
           }
 
         } catch (error) {
-          console.log(error);
+          if (done) {
+            context.status = Status.ERROR;
+            setNodeStatus(node);
+            done(error);
+          } else {
+            node.error(err, msg);
+          }
         }
 
         if (done) {

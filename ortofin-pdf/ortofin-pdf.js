@@ -10,24 +10,34 @@ module.exports = function(RED) {
    */
   const Status = Object.freeze({
     AVAILABLE: { text: 'available', fill: 'green', shape: 'dot' },
-    PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' }
+    PROCESSING: { text: 'processing', fill: 'yellow', shape: 'ring' },
+    ERROR: { text: 'error', fill: 'red', shape: 'dot' }
   });
 
   const processPDF = async (pdf, products, filename = null) => {
 
-    const startTime = process.hrtime();
+    try {
 
-    const text = await extractTextFromPDF(pdf);
-    const { documentType, content } = analyzeText(text, products, filename);
+      const text = await extractTextFromPDF(pdf);
+      const { documentType, content } = analyzeText(text, products, filename);
 
-    const elapsedTime = process.hrtime(startTime)[0];
-
-    return {
-      elapsedTime,
-      text,
-      documentType,
-      content
-    };
+      if (content) {
+        return {
+          text,
+          documentType,
+          content
+        };  
+      } else {
+        if (documentType === 'unknown') {
+          throw(new Error('Document type not recognized'))
+        } else {
+          throw(new Error(`Document (${documentType}) cannot be analyzed`));
+        }
+      }
+        
+    } catch (error) {
+      throw(error);      
+    }
   
   };
 
@@ -62,7 +72,6 @@ module.exports = function(RED) {
 
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
-        send = send || function() { node.send.apply(node, arguments) };
 
         const filename = msg.hasOwnProperty('filename') ? msg.filename : null;
 
@@ -71,7 +80,7 @@ module.exports = function(RED) {
           context.queue.push(msg.payload);
           setNodeStatus(node);
 
-          if (context.status === Status.AVAILABLE) {
+          if (context.status !== Status.PROCESSING) {
   
             while (context.queue.length > 0) {
 
@@ -82,7 +91,6 @@ module.exports = function(RED) {
 
               send({
                 recognizedText: result.text,
-                executionTime: `${result.documentType} processed in ${result.elapsedTime} seconds`,
                 documentType: result.documentType,
                 payload: result.content
               });
@@ -93,7 +101,13 @@ module.exports = function(RED) {
           }
 
         } catch (error) {
-          console.log(error);
+          if (done) {
+            context.status = Status.ERROR;
+            setNodeStatus(node);
+            done(error);
+          } else {
+            node.error(err, msg);
+          }
         }
 
         if (done) {

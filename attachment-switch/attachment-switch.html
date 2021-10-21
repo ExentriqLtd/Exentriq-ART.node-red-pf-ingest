@@ -152,3 +152,35 @@
     <ol id="node-input-rule-container"></ol>
   </div>
 </script>
+
+<script type="text/html" data-help-name="attachment-switch">
+  <p>Receives the output of <a href="https://flows.nodered.org/node/node-red-node-email">node-red-node-email</a> or <a>node-red-contrib-eml</a> and routes the PDF attachment to the proper processing nodes.</p>
+  
+  <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>from<span class="property-type">string</span></dt>
+        <dd>the email address of the message sender.</dd>
+        <dt>attachments<span class="property-type">array</span></dt>
+        <dd>the array of attachments found in the message.</dd>
+    </dl>
+  
+   <h3>Outputs</h3>
+  <dl class="message-properties">
+      <dt>payload <span class="property-type">buffer</span></dt>
+      <dd>the buffer of the PDF attachment.</dd>
+      <dt>filename <span class="property-type">string</span></dt>
+      <dd>the filename of the PDF attachment.</dd>
+  </dl>
+  
+  <h3>Details</h3>
+  <p>This node extracts the main PDF attachment, containing a business document (orders, order confirmations etc.) and routes it through the proper output port.</p>
+  <p>To determine the output port, the email address of the sender (<code>msg.from</code>) is checked against the configured customer list.</p>
+  <p>Each customer is defined by a JSON property with the following structure.</p>
+<pre>
+{
+  "name":       // The name of the customer
+  "domains": [] // A list of domains used by the customer
+}
+</pre>
+  <p>If the Internet domain of the sender's address matches a domain in the list of a customer's domains, the attachment is forwarded to the corresponding output port.</p>
+</script>

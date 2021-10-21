@@ -147,7 +147,7 @@ const extractBitmapBuffer = async (pdfData) => {
     const buffer = await getBitmapBuffer(image);
     return buffer;      
   } catch (error) {
-    throw(new Error(error));
+    throw(error);
   }
 };
 

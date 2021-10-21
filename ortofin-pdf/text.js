@@ -10,8 +10,6 @@ const getDateFromString = (stringDate) => {
 
 const getDateFromFilename = (filename) => {
 
-  // RiscontroDDT_20211012_35180.pdf
-
   const chunks = filename.split('_');
   if (chunks.length === 3) {
     const stringDate = chunks[1];
@@ -23,7 +21,6 @@ const getDateFromFilename = (filename) => {
 
   }
 };
-
 
 const analyzeOrder = (items, products, filename) => {
 
@@ -67,23 +64,7 @@ const analyzeOrder = (items, products, filename) => {
         order.totals.items += orderProduct.items;
         order.products.push(orderProduct);
       }
-    }
-  
-
-    // for (let i = 0; i < productCount; i++) {
-    //   const productIndex = index + 9 * i + 2;
-    //   const productCode = items[productIndex];
-    //   const matchingProduct = products.find(x => x.code === productCode);
-    //   if (matchingProduct) {
-    //     order.products.push({
-    //       code: matchingProduct.code,
-    //       description: matchingProduct.description,
-    //       items: parseInt(items[productIndex + 5]),
-    //       banks: parseInt(items[productIndex + 8])
-    //     });
-    //     order.bankCount += parseInt(items[productIndex + 8]);
-    //   }
-    // }
+    }  
   } else {
     order.anomalies.push('Product table not recognized');
   }
@@ -190,22 +171,30 @@ const documentTypes = [
   }
 ];
 
-
 const analyzeText = (text, products, filename = null) => {
 
-  let result;
+  try {
 
-  for (const documentType of documentTypes) {
-    if (text.items.filter(x => x.str.startsWith(documentType.needle)).length === 1) {
-      result = {
-        documentType: documentType.name,
-        content: documentType.analyzer(text.items.map(x => x.str.trim()), products, filename)
-      };
-      break;
+    let result = {
+      documentType: 'unknown',
+      content: undefined
+    };
+
+    for (const documentType of documentTypes) {
+      if (text.items.filter(x => x.str.startsWith(documentType.needle)).length === 1) {
+        result = {
+          documentType: documentType.name,
+          content: documentType.analyzer(text.items.map(x => x.str.trim()), products, filename)
+        };
+        break;
+      }
     }
+  
+    return result;
+  
+  } catch (error) {
+    throw(error);
   }
-
-  return result;
 
 };
 

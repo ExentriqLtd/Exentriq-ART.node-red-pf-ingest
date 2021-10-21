@@ -21,7 +21,7 @@ const recognizeText = async (bitmapBuffer) => {
     return text;
 
   } catch (error) {
-    throw(new Error(error));
+    throw(error);
   }
 
 };
