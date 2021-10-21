@@ -74,7 +74,7 @@ module.exports = function(RED) {
           context.queue.push(msg.payload);
           setNodeStatus(node);
 
-          if (context.status === Status.AVAILABLE) {
+          if (context.status !== Status.PROCESSING) {
   
             while (context.queue.length > 0) {
 
