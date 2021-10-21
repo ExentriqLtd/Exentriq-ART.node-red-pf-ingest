@@ -127,8 +127,18 @@
         const r = rule.find('.node-input-rule-value').typedInput('value');
         node.rules.push(r);
       });
-  },
-
+    },
+    oneditresize: function(size) {
+      const rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
+      let height = size.height;
+      for (var i = 0; i < rows.length; i++) {
+        height -= $(rows[i]).outerHeight(true);
+      }
+      const editorRow = $("#dialog-form>div.node-input-rule-container-row");
+      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+      height += 16;
+      $("#node-input-rule-container").editableList('height', height);
+    }
   });
   </script>
   
