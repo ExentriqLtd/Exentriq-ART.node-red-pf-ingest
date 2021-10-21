@@ -1,5 +1,4 @@
 const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-// const PDFParser = require('pdf-parse');
 
 const extractTextFromPDF = async (pdfData) => {
 

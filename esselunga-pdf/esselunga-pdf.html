@@ -49,3 +49,33 @@
     <input type="text" id="node-input-products">
   </div>
 </script>
+
+<script type="text/html" data-help-name="esselunga-pdf">
+  <p>Parses business documents (orders, confirmations etc.), coming from <strong>Esselunga </strong> in PDF format, to extract information.</p>
+
+  <h3>Inputs</h3>
+    <dl class="message-properties">
+      <dt>payload<span class="property-type">buffer</span></dt>
+      <dd>The PDF content.</dd>
+    </dl>
+  
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>A JavaScript object.</dd>
+    <dt>documentType <span class="property-type">string</span></dt>
+    <dd>The detected business document type (order, confirmation etc.) of the PDF.</dd>
+    <dt>recognizedText <span class="property-type">string</span></dt>
+    <dd>The text as it was extracted from the PDF by the OCR engine</dd>
+  </dl>
+  
+  <h3>Details</h3>
+  <p>PDF files coming from <strong>Esselunga</strong> contain a single bitmap, resulting from a virtual printing operation.</p>
+  <p>The PDF is processed as follows:</p>
+  <ul>
+    <li>bitmap extraction</li>
+    <li>text detection (OCR)</li>
+    <li>text analysis</li>
+    <li>exception handling (fix or report)</li>
+  </ul>
+</script>
