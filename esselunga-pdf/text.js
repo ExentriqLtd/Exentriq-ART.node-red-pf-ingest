@@ -36,11 +36,14 @@ const getDateFromObject = (objectDate) => {
 
 const fixDatePart = (datePart) => {
 
-  if (datePart === 109) {
+  if (datePart === 109 || datePart === 106) {
     datePart = 10;
   }
-  if (datePart === 209) {
+  if (datePart === 209 || datePart === 206) {
     datePart = 20;
+  }
+  if (datePart === 309 || datePart === 306) {
+    datePart = 30;
   }
   if (datePart > 80 && datePart < 90) {
     datePart -= 80;
