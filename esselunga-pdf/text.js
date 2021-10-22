@@ -161,7 +161,22 @@ const analyzeOrder = (text, products) => {
     order.anomalies.push('Warehouse opening hours not recognized');
   }
 
-  const matches = [...text.matchAll(regexes.order.products)];
+  let matches = [];
+
+  // String.prototype.matchAll() is only available since Node.js v12.0.0
+  if (typeof String.prototype.matchAll === 'function') {
+    matches = [...text.matchAll(regexes.order.products)];
+  } else {
+    let m;
+    do {
+      m = regexes.order.products.exec(text);
+      if (m) {
+        matches.push(m);
+      }
+    } while (m);  
+  }
+
+
   if (matches.length > 0) {
     for (const match of matches) {
 
@@ -254,7 +269,22 @@ const analyzeConfirmation = (text, products) => {
     confirmation.anomalies.push('Confirmation date not recognized');
   }
 
-  const matches = [...text.matchAll(regexes.confirmation.products)];
+
+  let matches = [];
+
+  // String.prototype.matchAll() is only available since Node.js v12.0.0
+  if (typeof String.prototype.matchAll === 'function') {
+    matches = [...text.matchAll(regexes.confirmation.products)];
+  } else {
+    let m;
+    do {
+      m = regexes.confirmation.products.exec(text);
+      if (m) {
+        matches.push(m);
+      }
+    } while (m);  
+  }
+
   if (matches.length > 0) {
     for (const match of matches) {
       const product = {
