@@ -176,7 +176,6 @@ const analyzeOrder = (text, products) => {
     } while (m);  
   }
 
-
   if (matches.length > 0) {
     for (const match of matches) {
 
@@ -200,13 +199,7 @@ const analyzeOrder = (text, products) => {
   } else {
     order.anomalies.push('Products not recognized');
   }
-  
-  // const totals = order.products.reduce((acc, curr) => {
-  //   return {
-  //     banks: acc.banks + curr.banks
-  //   };
-  // }, { banks: 0 });
-  
+    
   if (order.totals.banks !== banks) {
     order.anomalies.push(`Calculated bank count (${order.totals.banks}) is different from the read bank count (${banks})`);
   }
@@ -215,12 +208,6 @@ const analyzeOrder = (text, products) => {
 };
 
 const analyzeConfirmation = (text, products) => {
-
-  // const confirmation = {
-  //   products: [],
-  //   totals: {},
-  //   anomalies: []
-  // };
 
   const confirmation = {
     customer: 'Esselunga',
@@ -268,7 +255,6 @@ const analyzeConfirmation = (text, products) => {
   } else {
     confirmation.anomalies.push('Confirmation date not recognized');
   }
-
 
   let matches = [];
 
