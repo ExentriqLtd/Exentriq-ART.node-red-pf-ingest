@@ -1,9 +1,3 @@
-<style>
-  .white-label > text {
-    fill: white;
-  }
-</style>
-
 <script type="text/javascript">
 
 const productsOrtofin = [
@@ -15,7 +9,7 @@ const productsOrtofin = [
 
   RED.nodes.registerType('ortofin-pdf', {
     category: 'exentriq',
-    color: '#51786F',
+    color: '#73938b',
     defaults: {
       name: { value: '' },
       products: { value: JSON.stringify(productsOrtofin) }
@@ -25,9 +19,6 @@ const productsOrtofin = [
     icon: 'ortofin.svg',
     label: function() {
       return this.name || 'Ortofin';
-    },
-    labelStyle: function() {
-      return 'white-label';
     },
     paletteLabel: 'Ortofin',
     oneditprepare: function() {

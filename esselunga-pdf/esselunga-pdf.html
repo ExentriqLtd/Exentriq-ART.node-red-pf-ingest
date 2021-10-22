@@ -1,9 +1,3 @@
-<style>
-  .white-label > text {
-    fill: white;
-  }
-</style>
-
 <script type="text/javascript">
 
   const productsEsselunga = [
@@ -15,7 +9,7 @@
 
   RED.nodes.registerType('esselunga-pdf', {
     category: 'exentriq',
-    color: '#51786F',
+    color: '#73938b',
     defaults: {
       name: { value: '' },
       products: { value: JSON.stringify(productsEsselunga) }
@@ -25,9 +19,6 @@
     icon: 'esselunga.svg',
     label: function() {
       return this.name || 'Esselunga';
-    },
-    labelStyle: function() {
-      return 'white-label';
     },
     paletteLabel: 'Esselunga',
     oneditprepare: function() {
