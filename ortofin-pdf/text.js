@@ -43,6 +43,10 @@ const analyzeOrder = (items, products, filename) => {
     }
   };
 
+  if (items.find(x => x.indexOf('Il Presente Annulla e Sostituisce il Precedente') > -1)) {
+    order.overrides = true;
+  }
+
   let index = items.indexOf('Origine');
 
   if (index > -1 && items[index + 1] === '') {
@@ -86,7 +90,7 @@ const analyzeOrder = (items, products, filename) => {
       order.anomalies.push('Delivery date is not valid');
     }
     try {
-      order.destination.address = `${items[index + 3]} - ${items[index + 4]}`;      
+      order.destination.address = `${items[index + 3]}, ${items[index + 4]}`;      
     } catch (error) {
       order.anomalies.push('Destination not recognized');
     }
@@ -121,20 +125,25 @@ const analyzeConfirmation = (items, products, filename) => {
   for (const product of products) {
     const index = items.indexOf(product.code);
     if (index > -1) {
+
+      const offset = items[index + 4] === 'C212' ? 0 : 3;
+      // sometimes "lotto" and "scadenza" are missing...
+
       const orderProduct = {
         code: product.code,
         description: product.description,
-        banks: parseInt(items[index + 9]),
-        items: parseInt(items[index + 10]),
-        unitCost: parseFloat(items[index + 11].replace(',', '.'))
+        banks: parseInt(items[index + 6 + offset]),
+        items: parseInt(items[index + 7 + offset]),
+        unitCost: parseFloat(items[index + 8 + offset].replace(',', '.'))
       }
       if (orderProduct.items !== orderProduct.banks * product.bankItems) {
         confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of banks (${orderProduct.banks}) multiplied by ${product.bankItems}`);
       }
-      orderProduct.totalCost = orderProduct.unitCost * orderProduct.items;
+      orderProduct.totalCost = parseFloat((orderProduct.unitCost * orderProduct.items).toFixed(4));
       confirmation.totals.banks += orderProduct.banks;
       confirmation.totals.items += orderProduct.items;
       confirmation.totals.cost += orderProduct.totalCost;
+      confirmation.totals.cost = parseFloat(confirmation.totals.cost.toFixed(4));
       confirmation.products.push(orderProduct);
     }
   }
