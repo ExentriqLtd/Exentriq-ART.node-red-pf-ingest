@@ -47,13 +47,14 @@ module.exports = function(RED) {
 
           const rules = config.rules.map(x => JSON.parse(x));
           const port = getOutputPortFromAddress(msg.from, rules);
-          if (port) {
+          if (port !== null && port !== undefined) {
             const attachment = extractPDFAttachment(msg.attachments);
             if (attachment) {
               const messages = new Array(rules.length);
               messages[port] = {
                 payload: attachment.content,
-                filename: attachment.filename
+                filename: attachment.filename,
+                subject: msg.topic
               };
               node.send(messages);
             }
