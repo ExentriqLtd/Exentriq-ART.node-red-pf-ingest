@@ -67,7 +67,6 @@ module.exports = function(RED) {
 
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
-        send = send || function() { node.send.apply(node, arguments) };
 
         try {
 
