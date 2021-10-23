@@ -15,13 +15,43 @@ module.exports = function(RED) {
     ERROR: { text: 'error', fill: 'red', shape: 'dot' }
   });
 
-  const processPDF = async (pdf, products) => {
+  const getDetailsFromSubject = (subject) => {
+
+    const result = {
+      documentType: null,
+      orderNumber: null
+    };
+
+    const documentTypeObjects = [
+      {
+        name: 'order',
+        regex: /\d*\s{5}(?<orderNumber>\d*) PLANET FARMS ITALIA SOCIE S24 (?<orderPrefix>\w{1})\w{1} MSG: .*/
+      },
+      {
+        name: 'confirmation',
+        regex: /\d*\s{2}(?<orderNumber>\d*) PLANET FARMS S24 (?<orderPrefix>\w{1})\. MSG: .*/,
+      }
+    ];
+
+    for (const documentTypeObject of documentTypeObjects) {
+      const m = documentTypeObject.regex.exec(subject);
+      if (m) {
+        result.documentType = documentTypeObjects.name;
+        result.orderNumber = `${m.groups.orderPrefix}/${m.groups.orderNumber}`;
+        break;
+      }
+    }
+    return result;
+  };
+
+  const processPDF = async (options) => {
 
     try {
 
-      const bitmapBuffer = await extractBitmapBuffer(pdf);
+      const bitmapBuffer = await extractBitmapBuffer(options.pdf);
       const text = await recognizeText(bitmapBuffer);
-      const { documentType, content } = analyzeText(text, products);  
+      delete options.pdf;
+      const { documentType, content } = analyzeText({ text, ...options });
   
       return {
         text,
@@ -70,17 +100,29 @@ module.exports = function(RED) {
 
         try {
 
-          context.queue.push(msg.payload);
+          context.queue.push({
+            pdf: msg.payload,
+            subject: msg.subject
+          });
+
           setNodeStatus(node);
 
           if (context.status !== Status.PROCESSING) {
   
             while (context.queue.length > 0) {
 
-              const pdf = context.queue.shift();
+              const { pdf, subject } = context.queue.shift();
+
+              const { documentType, orderNumber } = getDetailsFromSubject(subject);
+
               context.status = Status.PROCESSING;
               setNodeStatus(node);
-              const result = await processPDF(pdf, products);
+              const result = await processPDF({
+                pdf,
+                products,
+                documentType,
+                orderNumber
+              });
 
               send({
                 recognizedText: result.text,

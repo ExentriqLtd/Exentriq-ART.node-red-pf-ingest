@@ -69,7 +69,7 @@ const findMatchingProduct = (code, products) => {
   return matchingProduct;
 };
 
-const analyzeOrder = (text, products) => {
+const analyzeOrder = (options) => {
 
   const order = {
     customer: 'Esselunga',
@@ -89,15 +89,21 @@ const analyzeOrder = (text, products) => {
       items: 0
     }
   };
+
+  const { text, products, orderNumber } = options;
   
   let match;
   let banks = 0;
 
-  match = text.match(regexes.order.number);
-  if (match) {
-    order.number = match.groups.number;
+  if (orderNumber) {
+    order.number = orderNumber;
   } else {
-    order.anomalies.push('Order number not recognized');
+    match = text.match(regexes.order.number);
+    if (match) {
+      order.number = match.groups.number;
+    } else {
+      order.anomalies.push('Order number not recognized');
+    }  
   }
 
   match = text.match(regexes.order.overrides);
@@ -207,7 +213,7 @@ const analyzeOrder = (text, products) => {
   return order;
 };
 
-const analyzeConfirmation = (text, products) => {
+const analyzeConfirmation = (options) => {
 
   const confirmation = {
     customer: 'Esselunga',
@@ -226,15 +232,21 @@ const analyzeConfirmation = (text, products) => {
     }
   };
 
+  const { text, products, orderNumber } = options;
 
   let match;
-  
-  match = text.match(regexes.confirmation.number);
-  if (match) {
-    confirmation.order = match.groups.number;
+
+  if (orderNumber) {
+    confirmation.order = orderNumber;
   } else {
-    confirmation.anomalies.push('Order number not recognized');
+    match = text.match(regexes.confirmation.number);
+    if (match) {
+      confirmation.order = match.groups.number;
+    } else {
+      confirmation.anomalies.push('Order number not recognized');
+    }  
   }
+  
 
   match = text.match(regexes.confirmation.date);
   if (match) {
@@ -352,7 +364,7 @@ const analyzeConfirmation = (text, products) => {
 
 };
 
-const documentTypes = [
+const documentTypeObjects = [
   {
     name: 'order',
     needle: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO/,
@@ -365,19 +377,32 @@ const documentTypes = [
   }
 ];
 
-const analyzeText = (text, products) => {
+const analyzeText = (options) => {
 
-  let result;
+  let analyzer;
 
-  for (const documentType of documentTypes) {
-    if (text.search(documentType.needle) > -1) {
-      result = {
-        documentType: documentType.name,
-        content: documentType.analyzer(text, products)
-      };
-      break;
-    }
+  let documentType = options.documentType ? options.documentType : null;
+
+  if (documentType) {
+    analyzer = documentTypeObjects.find(x => x.name === documentType).analyzer;
+  } else {
+    for (const documentTypeObject of documentTypeObjects) {
+      if (options.text.search(documentTypeObject.needle) > -1) {
+        documentType = documentTypeObject.name;
+        analyzer = documentTypeObject.analyzer;
+        break;
+      }
+    }  
   }
+
+  options.documentType = documentType;
+
+  return {
+    documentType,
+    content: analyzer(options)
+  };
+
+
 
   return result;
 
