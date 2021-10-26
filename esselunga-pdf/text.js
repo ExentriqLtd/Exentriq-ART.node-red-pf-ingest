@@ -9,12 +9,12 @@ const regexes = {
     delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>\d{1,2})\/(?<month>\d{1,2})\/(?<year>\d{1,2})/,
     warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>\d{1,2})\.(?<fromMinute>\d{1,2}) ALLE (?<toHour>\d{1,2})\.(?<toMinute>\d{1,2})/,
     products: /(?<code>\d{6,})\s*(?<description>[\w\s]*G)\s*(?<quantity>\d*)\s*(?<cost>[\d\,\s]*)\n/g,
-    bankCount: /TOTALE COLL[IT]\s*(?<count>\d*)/
+    boxCount: /TOTALE COLL[IT]\s*(?<count>\d*)/
   },
   confirmation: {
     number: /ORDINE NR. (?<number>\w\/\d*)/,
-    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*?G*)\s{4,}(?<banks>\d*)\s{4,}(?<items>\d*)\s{5,}(?<unitCost>\d{1,2},\s{0,1}\d{4,})\s{4,}(?<totalCost>\d{1,5},\s{0,1}\d{4,})/g,
-    totals: /\n(?<bankTotal>\d*)\s{1,}(?<itemTotal>[\d\.]*)\s{5,}(?<costTotal>[\d\.]*,\s{0,1}\d{4,})\nSi prega di verificare/,
+    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*?G*)\s{4,}(?<boxes>\d*)\s{4,}(?<items>\d*)\s{5,}(?<unitCost>\d{1,2},\s{0,1}\d{4,})\s{4,}(?<totalCost>\d{1,5},\s{0,1}\d{4,})/g,
+    totals: /\n(?<boxTotal>\d*)\s{1,}(?<itemTotal>[\d\.]*)\s{5,}(?<costTotal>[\d\.]*,\s{0,1}\d{4,})\nSi prega di verificare/,
     date: /Distinti saluti\nLimito di Pioltello, (?<day>\d{2,}) (?<month>\w*) (?<year>\d{4})/
   }
 };
@@ -85,7 +85,7 @@ const analyzeOrder = (options) => {
     },
     products: [],
     totals: {
-      banks: 0,
+      boxes: 0,
       items: 0
     }
   };
@@ -93,7 +93,7 @@ const analyzeOrder = (options) => {
   const { text, products, orderNumber } = options;
   
   let match;
-  let banks = 0;
+  let boxes = 0;
 
   if (orderNumber) {
     order.number = orderNumber;
@@ -136,11 +136,11 @@ const analyzeOrder = (options) => {
     oreder.anomalies.push('Destination address not recognized');
   }
 
-  match = text.match(regexes.order.bankCount);
+  match = text.match(regexes.order.boxCount);
   if (match) {
-    banks = parseInt(match.groups.count.replace('.', ''));
+    boxes = parseInt(match.groups.count.replace('.', ''));
   } else {
-    order.anomalies.push('Total bank count not recognized');
+    order.anomalies.push('Total box count not recognized');
   }
 
   match = text.match(regexes.order.delivery);
@@ -192,11 +192,11 @@ const analyzeOrder = (options) => {
         const orderProduct = {
           code: matchingProduct.code,
           description: matchingProduct.description,
-          banks: parseInt(match.groups.quantity),
+          boxes: parseInt(match.groups.quantity),
         };
-        orderProduct.items = orderProduct.banks * matchingProduct.bankItems;
+        orderProduct.items = orderProduct.boxes * matchingProduct.boxItems;
         order.products.push(orderProduct);
-        order.totals.banks += orderProduct.banks
+        order.totals.boxes += orderProduct.boxes
         order.totals.items += orderProduct.items;
       } else {
         order.anomalies.push(`Product code ${code} not found`);
@@ -206,8 +206,8 @@ const analyzeOrder = (options) => {
     order.anomalies.push('Products not recognized');
   }
     
-  if (order.totals.banks !== banks) {
-    order.anomalies.push(`Calculated bank count (${order.totals.banks}) is different from the read bank count (${banks})`);
+  if (order.totals.boxes !== boxes) {
+    order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
   }
 
   return order;
@@ -226,7 +226,7 @@ const analyzeConfirmation = (options) => {
     },
     products: [],
     totals: {
-      banks: 0,
+      boxes: 0,
       items: 0,
       cost: 0
     }
@@ -288,7 +288,7 @@ const analyzeConfirmation = (options) => {
       const product = {
         code: match.groups.code.trim(),
         description: match.groups.description.trim(),
-        banks: parseInt(match.groups.banks),
+        boxes: parseInt(match.groups.boxes),
         items: parseInt(match.groups.items),
         unitCost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
         totalCost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
@@ -310,8 +310,8 @@ const analyzeConfirmation = (options) => {
         product.code = matchingProduct.code;
         product.description = matchingProduct.description;
 
-        if (product.items !== product.banks * matchingProduct.bankItems) {
-          confirmation.anomalies.push(`Product "${product.description}": item count (${product.items}) is not equal to bank count (${product.banks}) multiplied by ${matchingProduct.bankItems}`);
+        if (product.items !== product.boxes * matchingProduct.boxItems) {
+          confirmation.anomalies.push(`Product "${product.description}": item count (${product.items}) is not equal to box count (${product.boxes}) multiplied by ${matchingProduct.boxItems}`);
         }
 
       }
@@ -323,7 +323,7 @@ const analyzeConfirmation = (options) => {
 
   match = text.match(regexes.confirmation.totals);
   if (match) {
-    confirmation.totals.banks = parseInt(match.groups.bankTotal.replace('.', ''));
+    confirmation.totals.boxes = parseInt(match.groups.boxTotal.replace('.', ''));
     confirmation.totals.items = parseInt(match.groups.itemTotal.replace('.', ''));
     confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.'));
   } else {
@@ -332,24 +332,24 @@ const analyzeConfirmation = (options) => {
 
   // Perform some checks...
 
-  let banks = 0;
+  let boxes = 0;
   let items = 0;
   let cost = 0;
 
   for (const product of confirmation.products) {
-    if (product.items !== 8 * product.banks) {
-      confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of banks (${product.banks}) multiplied by 8`);
+    if (product.items !== 8 * product.boxes) {
+      confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of boxes (${product.boxes}) multiplied by 8`);
     }
     if ((product.items * product.unitCost).toFixed(4) !== product.totalCost.toFixed(4)) {
       confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.totalCost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unitCost})`);
     }
-    banks += product.banks;
+    boxes += product.boxes;
     items += product.items;
     cost += product.totalCost;
   }
 
-  if (banks !== confirmation.totals.banks) {
-    confirmation.anomalies.push(`Bank total (${confirmation.totals.banks}) is not equal to the sum of banks of products (${banks})`)
+  if (boxes !== confirmation.totals.boxes) {
+    confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`)
   }
 
   if (items !== confirmation.totals.items) {

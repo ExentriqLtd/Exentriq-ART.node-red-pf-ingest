@@ -38,7 +38,7 @@ const analyzeOrder = (items, products, filename) => {
     },
     products: [],
     totals: {
-      banks: 0,
+      boxes: 0,
       items: 0
     }
   };
@@ -58,13 +58,13 @@ const analyzeOrder = (items, products, filename) => {
         const orderProduct = {
           code: product.code,
           description: product.description,
-          banks: parseInt(items[index + 8]),
+          boxes: parseInt(items[index + 8]),
           items: parseInt(items[index + 5])
         }
-        if (orderProduct.items !== orderProduct.banks * product.bankItems) {
-          order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of banks (${orderProduct.banks}) multiplied by ${product.bankItems}`);
+        if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
+          order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
         }
-        order.totals.banks += orderProduct.banks;
+        order.totals.boxes += orderProduct.boxes;
         order.totals.items += orderProduct.items;
         order.products.push(orderProduct);
       }
@@ -112,7 +112,7 @@ const analyzeConfirmation = (items, products, filename) => {
     },
     products: [],
     totals: {
-      banks: 0,
+      boxes: 0,
       items: 0,
       cost: 0
     }
@@ -132,15 +132,15 @@ const analyzeConfirmation = (items, products, filename) => {
       const orderProduct = {
         code: product.code,
         description: product.description,
-        banks: parseInt(items[index + 6 + offset]),
+        boxes: parseInt(items[index + 6 + offset]),
         items: parseInt(items[index + 7 + offset]),
         unitCost: parseFloat(items[index + 8 + offset].replace(',', '.'))
       }
-      if (orderProduct.items !== orderProduct.banks * product.bankItems) {
-        confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of banks (${orderProduct.banks}) multiplied by ${product.bankItems}`);
+      if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
+        confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
       }
       orderProduct.totalCost = parseFloat((orderProduct.unitCost * orderProduct.items).toFixed(4));
-      confirmation.totals.banks += orderProduct.banks;
+      confirmation.totals.boxes += orderProduct.boxes;
       confirmation.totals.items += orderProduct.items;
       confirmation.totals.cost += orderProduct.totalCost;
       confirmation.totals.cost = parseFloat(confirmation.totals.cost.toFixed(4));
