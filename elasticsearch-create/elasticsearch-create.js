@@ -27,10 +27,6 @@ module.exports = function(RED) {
         const client = new Client({ node: elasticsearchConfig.node });
         await client.index({
           index: 'sales',
-          // here we are forcing an index refresh,
-          // otherwise we will not get any result
-          // in the consequent search
-          // refresh: true,
           body: {
             uuid: uuidv4(),
             plant: elasticsearchConfig.body.plant,

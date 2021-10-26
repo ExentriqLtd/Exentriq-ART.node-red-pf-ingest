@@ -24,35 +24,30 @@
 </script>
 
 <script type="text/html" data-help-name="elasticsearch-create">
-  <p>Receives the output of <a href="https://flows.nodered.org/node/node-red-node-email">node-red-node-email</a> or <a>node-red-contrib-eml</a> and routes the PDF attachment to the proper processing nodes.</p>
+  <p>Creates a new item in the <code>sales</code> index on the specified Elasticsearch node.</p>
   
   <h3>Inputs</h3>
     <dl class="message-properties">
-        <dt>from<span class="property-type">string</span></dt>
-        <dd>The email address of the message sender.</dd>
-        <dt>attachments<span class="property-type">array</span></dt>
-        <dd>The array of attachments found in the message.</dd>
+        <dt>payload<span class="property-type">object</span></dt>
+        <dd>The entity to be written on Elasticsearch.</dd>
+        <dt>documentType<span class="property-type">array</span></dt>
+        <dd>The type to be written on Elasticsearch.</dd>
     </dl>
-  
-   <h3>Outputs</h3>
-  <dl class="message-properties">
-      <dt>payload <span class="property-type">buffer</span></dt>
-      <dd>The buffer of the PDF attachment.</dd>
-      <dt>filename <span class="property-type">string</span></dt>
-      <dd>The filename of the PDF attachment.</dd>
-      <dt>subject <span class="property-type">string</span></dt>
-      <dd>The subject of the email message.</dd>
-  </dl>
-  
+    
   <h3>Details</h3>
-  <p>This node extracts the main PDF attachment, containing a business document (orders, order confirmations etc.) and routes it through the proper output port.</p>
-  <p>To determine the output port, the email address of the sender (<code>msg.from</code>) is checked against the configured customer list.</p>
-  <p>Each customer is defined by a JSON property with the following structure.</p>
+  <p>This node creates a new item on the sepecified Elasticsearch node.</p>
+  <p>The payload sent to Elasticsearch has the following structure:</p>
 <pre>
 {
-  "name":       // The name of the customer
-  "domains": [] // A list of domains used by the customer
+  index: 'sales',
+  body: {
+    uuid: '...',      // generated UUIDv4
+    plant: 'PF',
+    service: 'SALES',
+    type: '...',      // 'ORDER' or 'CONFIRMATION'
+    timestamp: ...,   // Unix timestamp
+    entity: {...}     // msg.payload
+  }
 }
 </pre>
-  <p>If the Internet domain of the sender's address matches a domain in the list of a customer's domains, the attachment is forwarded to the corresponding output port.</p>
 </script>
