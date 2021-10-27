@@ -4,12 +4,12 @@ module.exports = function(RED) {
     node: 'http://localhost:9200',
     index: 'sales',
     types: {
-      order: 'ORDER',
-      confirmation: 'CONFIRMATION'
+      order: 'order',
+      confirmation: 'confirmation'
     },
     body: {
-      service: 'SALES',
-      plant: 'PF'
+      service: 'sales',
+      plant: 'pf'
     }
   };
 
@@ -25,7 +25,7 @@ module.exports = function(RED) {
 
       try {
         const client = new Client({ node: elasticsearchConfig.node });
-        await client.index({
+        const elasticSearchMessage = {
           index: 'sales',
           body: {
             uuid: uuidv4(),
@@ -35,7 +35,9 @@ module.exports = function(RED) {
             timestamp: Math.floor(+new Date() / 1000),
             entity: msg.payload
           }
-        });
+        };
+        // await client.index(message);
+        node.send(elasticSearchMessage);
         done();
       } catch (error) {
         done(error);
