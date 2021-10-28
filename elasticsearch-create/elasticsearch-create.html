@@ -4,7 +4,14 @@
     category: 'Planet Farms',
     color: '#73938b',
     defaults: {
-      name: { value: '' }
+      name: { value: '' },
+      elasticsearch: { value: '', type: 'elasticsearch-config' },
+      plant: { value: '', required: true},
+      service: { value: '', required: true },
+      doctype: { value: 'documentType', required: true },
+      doctypeType: { value: 'msg' },
+      entity: { value: 'payload', required: true },
+      entityType: { value: 'msg' }
     },
     inputs: 1,
     outputs: 1,
@@ -13,6 +20,45 @@
       return this.name || 'elasticsearch create';
     },
     paletteLabel: 'elasticsearch create',
+    oneditprepare: function() {
+      $('#node-input-plant').typedInput({
+        types: [
+          {
+            value: 'plant',
+            options: [
+              { value: 'pf', label: 'Planet Farms (generic)' },
+              { value: 'cav01', label: 'Cavenago 1' },
+              { value: 'cav02', label: 'Cavenago 2' },
+              { value: 'are01', label: 'Arese 1'}
+            ]
+          }
+        ]
+      });
+      $('#node-input-service').typedInput({
+        types: [
+          {
+            value: 'service',
+            options: [
+              { value: 'sales', label: 'Sales' }
+            ]
+          }
+        ]
+      });
+      $('#node-input-doctype').typedInput({
+        default: 'msg',
+        types: ['msg', 'str'],
+        typeField: '#node-input-doctypeType'
+      });
+      $('#node-input-entity').typedInput({
+        default: 'msg',
+        types: ['msg', 'json'],
+        typeField: '#node-input-entityType'
+      });
+    }
+    // oneditsave: function() {
+    //   // debugger;
+    //   const node = this;
+    // }
   });
   </script>
   
@@ -20,6 +66,28 @@
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-elasticsearch"><i class="fa fa-database"></i> Elasticsearch</label>
+    <input type="text" id="node-input-elasticsearch" placeholder="Elasticsearch">
+  </div>
+  <div class="form-row">
+    <label for="node-input-plant"><i class="fa fa-leaf"></i> Plant</label>
+    <input type="text" id="node-input-plant" placeholder="Plant">
+  </div>
+  <div class="form-row">
+    <label for="node-input-service"><i class="fa fa-cogs"></i> Service</label>
+    <input type="text" id="node-input-service" placeholder="Service">
+  </div>
+  <div class="form-row">
+    <label for="node-input-doctype"><i class="fa fa-file-code-o"></i> Type</label>
+    <input type="text" id="node-input-doctype">
+    <input type="hidden" id="node-input-doctypeType">
+  </div>
+  <div class="form-row">
+    <label for="node-input-entity"><i class="fa fa-code"></i> Entity</label>
+    <input type="text" id="node-input-entity">
+    <input type="hidden" id="node-input-entityType">
   </div>
 </script>
 

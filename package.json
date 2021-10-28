@@ -18,6 +18,7 @@
   "node-red": {
     "nodes": {
       "attachment-switch": "attachment-switch/attachment-switch.js",
+      "elasticsearch-config": "elasticsearch-config/elasticsearch-config.js",
       "elasticsearch-create": "elasticsearch-create/elasticsearch-create.js",
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js"

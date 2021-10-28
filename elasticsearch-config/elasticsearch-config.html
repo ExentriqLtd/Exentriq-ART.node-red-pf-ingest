@@ -1,0 +1,23 @@
+<script type="text/javascript">
+  RED.nodes.registerType('elasticsearch-config',{
+      category: 'config',
+      defaults: {
+          endpoint: { value: '', required: true },
+          index: { value: '', required: true }
+      },
+      label: function() {
+        return `${this.endpoint}/${this.index}`;
+      }
+  });
+</script>
+
+<script type="text/html" data-template-name="elasticsearch-config">
+  <div class="form-row">
+      <label for="node-config-input-endpoint"><i class="fa fa-bookmark"></i> Endpoint</label>
+      <input type="text" id="node-config-input-endpoint">
+  </div>
+  <div class="form-row">
+      <label for="node-config-input-index"><i class="fa fa-bookmark"></i> Index</label>
+      <input type="text" id="node-config-input-index">
+  </div>
+</script>
