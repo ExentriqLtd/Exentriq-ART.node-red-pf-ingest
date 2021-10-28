@@ -1,4 +1,4 @@
 # pf-ingest
 
-Node-RED nodes for Planet Farms ingest automation
+Node-RED nodes for Planet Farms business document ingestion automation
 

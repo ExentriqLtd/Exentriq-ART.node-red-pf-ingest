@@ -92,7 +92,7 @@
 </script>
 
 <script type="text/html" data-help-name="elasticsearch-create">
-  <p>Creates a new item in the <code>sales</code> index on the specified Elasticsearch node.</p>
+  <p>Creates a new item on the configured Elasticsearch node and index.</p>
   
   <h3>Inputs</h3>
     <dl class="message-properties">
@@ -103,16 +103,16 @@
     </dl>
     
   <h3>Details</h3>
-  <p>This node creates a new item on the specified Elasticsearch node.</p>
+  <p>This node creates a new item on the configured Elasticsearch node and index.</p>
   <p>The payload sent to Elasticsearch has the following structure:</p>
 <pre>
 {
-  index: 'sales',
+  index: '...',
   body: {
     uuid: '...',      // generated UUIDv4
-    plant: 'PF',
-    service: 'SALES',
-    type: '...',      // 'ORDER' or 'CONFIRMATION'
+    plant: '...',
+    service: '...',
+    type: '...',      // 'oreder', 'confirmation' etc.
     timestamp: ...,   // Unix timestamp
     entity: {...}     // msg.payload
   }
