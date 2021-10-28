@@ -38,7 +38,7 @@ module.exports = function(RED) {
             plant: node.plant.toLowerCase(),
             service: node.service.toLowerCase(),
             type: node.doctypeType === 'msg' ? msg[node.doctype] : node.doctype,
-            timestamp: Math.floor(+new Date() / 1000),
+            timestamp: Math.floor(+new Date()),
             entity: node.entityType === 'msg' ? msg[node.entity] : node.entity
           }
         };
