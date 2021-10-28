@@ -53,10 +53,12 @@ const analyzeOrder = (items, products, filename) => {
     const productCount = ((items.length - (index + 2)) / 9);
 
     for (const product of products) {
-      const index = items.indexOf(product.code);
+      const index = items.indexOf(product.customer_code);
       if (index > -1) {
         const orderProduct = {
           code: product.code,
+          customer_code: product.customer_code,
+          ean: product.ean,
           description: product.description,
           boxes: parseInt(items[index + 8]),
           items: parseInt(items[index + 5])
@@ -123,7 +125,7 @@ const analyzeConfirmation = (items, products, filename) => {
   }
 
   for (const product of products) {
-    const index = items.indexOf(product.code);
+    const index = items.indexOf(product.customer_code);
     if (index > -1) {
 
       const offset = items[index + 4] === 'C212' ? 0 : 3;
@@ -131,18 +133,20 @@ const analyzeConfirmation = (items, products, filename) => {
 
       const orderProduct = {
         code: product.code,
+        customer_code: product.customer_code,
+        ean: product.ean,
         description: product.description,
         boxes: parseInt(items[index + 6 + offset]),
         items: parseInt(items[index + 7 + offset]),
-        unitCost: parseFloat(items[index + 8 + offset].replace(',', '.'))
+        unit_cost: parseFloat(items[index + 8 + offset].replace(',', '.'))
       }
       if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
         confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
       }
-      orderProduct.totalCost = parseFloat((orderProduct.unitCost * orderProduct.items).toFixed(4));
+      orderProduct.total_cost = parseFloat((orderProduct.unit_cost * orderProduct.items).toFixed(4));
       confirmation.totals.boxes += orderProduct.boxes;
       confirmation.totals.items += orderProduct.items;
-      confirmation.totals.cost += orderProduct.totalCost;
+      confirmation.totals.cost += orderProduct.total_cost;
       confirmation.totals.cost = parseFloat(confirmation.totals.cost.toFixed(4));
       confirmation.products.push(orderProduct);
     }

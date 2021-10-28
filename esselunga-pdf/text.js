@@ -60,7 +60,7 @@ const findMatchingProduct = (code, products) => {
   let score = 999;
   let matchingProduct;
   for (const product of products) {
-    const distance = levenshtein(code, product.code);
+    const distance = levenshtein(code, product.customer_code);
     if (distance < score) {
       matchingProduct = product;
       score = distance;
@@ -186,11 +186,13 @@ const analyzeOrder = (options) => {
     for (const match of matches) {
 
       const code = match.groups.code.trim();
-      const matchingProduct = products.find(x => x.code === code);
+      const matchingProduct = products.find(x => x.customer_code === code);
 
       if (matchingProduct) {
         const orderProduct = {
           code: matchingProduct.code,
+          ean: matchingProduct.ean,
+          customer_code: matchingProduct.customer_code,
           description: matchingProduct.description,
           boxes: parseInt(match.groups.quantity),
         };
@@ -286,28 +288,30 @@ const analyzeConfirmation = (options) => {
   if (matches.length > 0) {
     for (const match of matches) {
       const product = {
-        code: match.groups.code.trim(),
+        customer_code: match.groups.code.trim(),
         description: match.groups.description.trim(),
         boxes: parseInt(match.groups.boxes),
         items: parseInt(match.groups.items),
-        unitCost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
-        totalCost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
+        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
+        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
       };
 
-      if (product.totalCost.toFixed(4) !== (product.items * product.unitCost).toFixed(4)) {
-        if ((Math.floor(product.totalCost / 1000) === 2)
-          && ((parseInt(product.totalCost) % 10) === 9)
+      if (product.total_cost.toFixed(4) !== (product.items * product.unit_cost).toFixed(4)) {
+        if ((Math.floor(product.total_cost / 1000) === 2)
+          && ((parseInt(product.total_cost) % 10) === 9)
         ) {
-          const fixedTotalCost = (parseInt(product.totalCost) - 9) / 10 + product.totalCost - parseInt(product.totalCost);
-          if (fixedTotalCost.toFixed(4) === (product.items * product.unitCost).toFixed(4)) {
-            product.totalCost = parseFloat((fixedTotalCost).toFixed(4));
+          const fixedTotalCost = (parseInt(product.total_cost) - 9) / 10 + product.total_cost - parseInt(product.total_cost);
+          if (fixedTotalCost.toFixed(4) === (product.items * product.unit_cost).toFixed(4)) {
+            product.total_cost = parseFloat((fixedTotalCost).toFixed(4));
           }
         }
       }
 
-      if (product.code) {
-        const matchingProduct = findMatchingProduct(product.code, products);
+      if (product.customer_code) {
+        const matchingProduct = findMatchingProduct(product.customer_code, products);
         product.code = matchingProduct.code;
+        product.customer_code = matchingProduct.customer_code;
+        product.ean = matchingProduct.ean;
         product.description = matchingProduct.description;
 
         if (product.items !== product.boxes * matchingProduct.boxItems) {
@@ -340,12 +344,12 @@ const analyzeConfirmation = (options) => {
     if (product.items !== 8 * product.boxes) {
       confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of boxes (${product.boxes}) multiplied by 8`);
     }
-    if ((product.items * product.unitCost).toFixed(4) !== product.totalCost.toFixed(4)) {
-      confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.totalCost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unitCost})`);
+    if ((product.items * product.unit_cost).toFixed(4) !== product.total_cost.toFixed(4)) {
+      confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
     }
     boxes += product.boxes;
     items += product.items;
-    cost += product.totalCost;
+    cost += product.total_cost;
   }
 
   if (boxes !== confirmation.totals.boxes) {
