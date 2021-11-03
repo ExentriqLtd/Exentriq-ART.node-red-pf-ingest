@@ -102,7 +102,9 @@ module.exports = function(RED) {
 
           context.queue.push({
             pdf: msg.payload,
-            subject: msg.subject
+            subject: msg.subject,
+            date: msg.date,
+            messageID: msg.messageID
           });
 
           setNodeStatus(node);
@@ -111,7 +113,7 @@ module.exports = function(RED) {
   
             while (context.queue.length > 0) {
 
-              const { pdf, subject } = context.queue.shift();
+              const { pdf, subject, date, messageID } = context.queue.shift();
 
               const { documentType, orderNumber } = getDetailsFromSubject(subject);
 
@@ -127,7 +129,9 @@ module.exports = function(RED) {
               send({
                 recognizedText: result.text,
                 documentType: result.documentType,
-                payload: result.content
+                payload: result.content,
+                date,
+                messageID
               });
   
             }

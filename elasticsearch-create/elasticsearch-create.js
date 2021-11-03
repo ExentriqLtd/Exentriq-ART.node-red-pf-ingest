@@ -1,16 +1,5 @@
 module.exports = function(RED) {
 
-  // const elasticsearchConfig = {
-  //   types: {
-  //     order: 'order',
-  //     confirmation: 'confirmation'
-  //   },
-  //   body: {
-  //     service: 'sales',
-  //     plant: 'pf'
-  //   }
-  // };
-
   function ElasticsearchCreateNode(config) {
     RED.nodes.createNode(this, config);
 
@@ -32,17 +21,19 @@ module.exports = function(RED) {
       try {
         const client = new Client({ node: node.elasticsearch.endpoint });
         const elasticsearchMessage = {
+          id: msg.messageID,
           index: node.elasticsearch.index,
           body: {
             uuid: uuidv4(),
             plant: node.plant.toLowerCase(),
             service: node.service.toLowerCase(),
             type: node.doctypeType === 'msg' ? msg[node.doctype] : node.doctype,
-            timestamp: Math.floor(+new Date()),
+            timestamp: msg.date,
             entity: node.entityType === 'msg' ? msg[node.entity] : node.entity
           }
         };
-        await client.index(elasticsearchMessage);
+        await client.create(elasticsearchMessage);
+        // await client.index(elasticsearchMessage);
         node.send(elasticsearchMessage);
         done();
       } catch (error) {

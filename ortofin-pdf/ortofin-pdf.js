@@ -77,14 +77,21 @@ module.exports = function(RED) {
 
         try {
 
-          context.queue.push(msg.payload);
+          context.queue.push({
+            pdf: msg.payload,
+            subject: msg.subject,
+            date: msg.date,
+            messageID: msg.messageID
+          });
+
           setNodeStatus(node);
 
           if (context.status !== Status.PROCESSING) {
   
             while (context.queue.length > 0) {
 
-              const pdf = context.queue.shift();
+              const { pdf, subject, date, messageID } = context.queue.shift();
+
               context.status = Status.PROCESSING;
               setNodeStatus(node);
               const result = await processPDF(pdf, products, filename);
@@ -92,7 +99,9 @@ module.exports = function(RED) {
               send({
                 recognizedText: result.text,
                 documentType: result.documentType,
-                payload: result.content
+                payload: result.content,
+                date,
+                messageID
               });
   
             }

@@ -54,7 +54,9 @@ module.exports = function(RED) {
               messages[port] = {
                 payload: attachment.content,
                 filename: attachment.filename,
-                subject: msg.topic
+                subject: msg.topic,
+                date: +new Date(msg.date),
+                messageID: msg.header['message-id']
               };
               node.send(messages);
             }
