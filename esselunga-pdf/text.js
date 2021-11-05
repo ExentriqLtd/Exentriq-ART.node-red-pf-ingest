@@ -1,5 +1,7 @@
 const levenshtein = require('js-levenshtein');
 
+const ambiguousChars = '67890/';
+
 const regexes = {
   order: {
     number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/\d*) DEL/,
@@ -13,8 +15,8 @@ const regexes = {
   },
   confirmation: {
     number: /ORDINE NR. (?<number>\w\/\d*)/,
-    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*?G*)\s{4,}(?<boxes>\d*)\s{4,}(?<items>\d*)\s{5,}(?<unitCost>\d{1,2},\s{0,1}\d{4,})\s{4,}(?<totalCost>\d{1,5},\s{0,1}\d{4,})/g,
-    totals: /\n(?<boxTotal>\d*)\s{1,}(?<itemTotal>[\d\.]*)\s{5,}(?<costTotal>[\d\.]*,\s{0,1}\d{4,})\nSi prega di verificare/,
+    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>\d*)\s*(?<items>[\d\.]*)\s{5,}(?<unitCost>\d{1,2},\s{0,1}[\dB]{4,})\s*(?<totalCost>[\d\.]*,\s{0,1}[\dB]{4,})/g,
+    totals: /\n(?<boxTotal>\d*)\s{1,}(?<itemTotal>[\d\.]*)\s{5,}(?<costTotal>[\d\.]*,\/{0,1}\s{0,1}\d{4,})\nSi prega di verificare/,
     date: /Distinti saluti\nLimito di Pioltello, (?<day>\d{2,}) (?<month>\w*) (?<year>\d{4})/
   }
 };
@@ -68,6 +70,33 @@ const findMatchingProduct = (code, products) => {
   }
   return matchingProduct;
 };
+
+const findFirstDifference = (str1, str2) =>
+  str2[[...str1].findIndex((el, index) => el !== str2[index])];
+
+const fixNumber = (number, estimate) => {
+
+  let numberString = number.toFixed(2);
+  let estimateString = estimate.toFixed(2);
+
+  let a = [ numberString, estimateString ].sort((a, b) => {
+    return (a.length - b.length);
+  });
+
+  for (let i = 0; i < Math.abs(a[0].length - a[1].length); i++) {
+    numberString = numberString.replace(findFirstDifference(a[0], a[1]), '');
+  }
+
+  for (let i = 0; i < levenshtein(a[0], a[1]); i++) {
+    let diff = findFirstDifference(a[0], a[1]);
+    if (ambiguousChars.indexOf(diff) > -1) {
+      numberString = numberString.replace(diff, estimateString[numberString.indexOf(diff)]);
+    }
+  }
+
+  return numberString === estimateString ? estimateString : null;
+};
+
 
 const analyzeOrder = (options) => {
 
@@ -194,7 +223,7 @@ const analyzeOrder = (options) => {
           ean: matchingProduct.ean,
           customer_code: matchingProduct.customer_code,
           description: matchingProduct.description,
-          boxes: parseInt(match.groups.quantity),
+          boxes: parseInt(match.groups.quantity.replace('.', '')),
         };
         orderProduct.items = orderProduct.boxes * matchingProduct.boxItems;
         order.products.push(orderProduct);
@@ -290,21 +319,29 @@ const analyzeConfirmation = (options) => {
       const product = {
         customer_code: match.groups.code.trim(),
         description: match.groups.description.trim(),
-        boxes: parseInt(match.groups.boxes),
-        items: parseInt(match.groups.items),
-        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
-        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
+        boxes: parseInt(match.groups.boxes.replace('.', '')),
+        items: parseInt(match.groups.items.replace('.', '')),
+        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.').replace('B', '0')),
+        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0'))
       };
 
-      if (product.total_cost.toFixed(4) !== (product.items * product.unit_cost).toFixed(4)) {
-        if ((Math.floor(product.total_cost / 1000) === 2)
-          && ((parseInt(product.total_cost) % 10) === 9)
-        ) {
-          const fixedTotalCost = (parseInt(product.total_cost) - 9) / 10 + product.total_cost - parseInt(product.total_cost);
-          if (fixedTotalCost.toFixed(4) === (product.items * product.unit_cost).toFixed(4)) {
-            product.total_cost = parseFloat((fixedTotalCost).toFixed(4));
+      if (product.total_cost.toFixed(2) !== (product.items * product.unit_cost).toFixed(2)) {
+        // if ((((parseInt(product.total_cost) % 10) === 9))
+        //   && (
+        //     (parseInt(product.total_cost) - 9).toFixed(2) === (product.items * product.unit_cost).toFixed(2)
+        //     || ((parseInt(product.total_cost) - 9) / 10).toFixed(2) === (product.items * product.unit_cost).toFixed(2)
+        // )) {
+        //     product.total_cost = product.items * product.unit_cost;
+        // }
+
+        if (levenshtein(product.total_cost.toFixed(2), (product.items * product.unit_cost).toFixed(2)) === 1) {
+          const diff = findFirstDifference(product.total_cost.toFixed(2), (product.items * product.unit_cost).toFixed(2));
+          const diffReverse = findFirstDifference((product.items * product.unit_cost).toFixed(2), product.total_cost.toFixed(2));
+          if (ambiguousChars.indexOf(diff) > -1 || ambiguousChars.indexOf(diffReverse) > -1) {
+            product.total_cost = product.items * product.unit_cost;
           }
         }
+
       }
 
       if (product.customer_code) {
@@ -329,7 +366,7 @@ const analyzeConfirmation = (options) => {
   if (match) {
     confirmation.totals.boxes = parseInt(match.groups.boxTotal.replace('.', ''));
     confirmation.totals.items = parseInt(match.groups.itemTotal.replace('.', ''));
-    confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.'));
+    confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('/', '').replace('.', '').replace(',', '.'));
   } else {
     confirmation.anomalies.push('Totals not recognized');
   }
@@ -344,9 +381,26 @@ const analyzeConfirmation = (options) => {
     if (product.items !== 8 * product.boxes) {
       confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of boxes (${product.boxes}) multiplied by 8`);
     }
-    if ((product.items * product.unit_cost).toFixed(4) !== product.total_cost.toFixed(4)) {
-      confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
+    if ((product.items * product.unit_cost).toFixed(2) !== product.total_cost.toFixed(2)) {
+
+      let fixed = false;
+
+      const calculatedUnitCost = product.total_cost / product.items;
+
+      if (levenshtein(product.unit_cost.toFixed(2), calculatedUnitCost.toFixed(2)) === 1) {
+        const diff = findFirstDifference(product.unit_cost.toFixed(2), calculatedUnitCost.toFixed(2));
+        const diffReverse = findFirstDifference(calculatedUnitCost.toFixed(2), product.unit_cost.toFixed(2));
+        if (ambiguousChars.indexOf(diff) > -1 || ambiguousChars.indexOf(diffReverse) > -1) {
+          product.unit_cost = calculatedUnitCost;
+          fixed = true;
+        }
+      }
+
+      if (!fixed) {
+        confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
+      }
     }
+
     boxes += product.boxes;
     items += product.items;
     cost += product.total_cost;
@@ -360,8 +414,22 @@ const analyzeConfirmation = (options) => {
     confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`)    
   }
 
-  if (cost.toFixed(4) !== confirmation.totals.cost.toFixed(4)) {
-    confirmation.anomalies.push(`Total cost (€ ${confirmation.totals.cost}) is not equal to the sum of costs of products (€ ${cost})`)
+  if (cost.toFixed(2) !== confirmation.totals.cost.toFixed(2)) {
+    let fixed = false;
+    if (Math.abs(cost - confirmation.totals.cost) < 0.01) {
+      confirmation.totals.cost = parseFloat(cost.toFixed(2));
+      fixed = true;
+    } else if (levenshtein(cost.toFixed(2),confirmation.totals.cost.toFixed(2)) === 1) {
+      const diff = findFirstDifference(cost.toFixed(2), confirmation.totals.cost.toFixed(2));
+      const diffReverse = findFirstDifference(confirmation.totals.cost.toFixed(2), cost.toFixed(2));
+      if (ambiguousChars.indexOf(diff) > -1 || ambiguousChars.indexOf(diffReverse) > -1) {
+        confirmation.totals.cost = parseFloat(cost.toFixed(2));
+        fixed = true;
+      }
+    }
+    if (!fixed) {
+      confirmation.anomalies.push(`Total cost (€ ${confirmation.totals.cost}) is not equal to the sum of costs of products (€ ${cost})`)
+    }
   }
 
   return confirmation;

@@ -105,11 +105,11 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         },
         "boxes": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "items": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         }
       },
       "required": [
@@ -128,11 +128,11 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
       "properties": {
         "boxes": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "items": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         }
       },
       "required": [
@@ -294,7 +294,7 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         },
         "products": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "uniqueItems": true,
           "items": {
             "$ref": "#/definitions/Product"
@@ -333,11 +333,11 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         },
         "boxes": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "items": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "unit_cost": {
           "type": "number"
@@ -381,11 +381,11 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
       "properties": {
         "boxes": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "items": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0
         },
         "cost": {
           "type": "number"

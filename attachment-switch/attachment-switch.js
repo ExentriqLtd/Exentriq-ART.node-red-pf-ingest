@@ -61,7 +61,7 @@ module.exports = function(RED) {
               node.send(messages);
             }
           } else {
-            throw(new Error(`Message with subject "${msg.topic}" received from an unknown sender: ${msg.from}`));
+            throw(new Error(`Message with subject "${msg.topic}" received on ${msg.date} from an unknown sender: ${msg.from}`));
           }
 
         } catch (error) {
