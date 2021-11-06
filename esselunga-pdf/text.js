@@ -1,21 +1,23 @@
 const levenshtein = require('js-levenshtein');
 
+const ambiguousChars = '6890/B';
+
 const regexes = {
   order: {
-    number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/\d*) DEL/,
+    number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/[\d\/B]*) DEL/,
     overrides: /ATTENZIONE: IL PRESENTE ORDINE DEL .* SOSTITUISCE IL\nPRECEDENTE INVIATO IL .* CON IL MEDESIMO CODICE/,
-    date: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*.*DEL\s*(?<day>\d{2})\/(?<month>\d{2})\/(?<year>\d{4})/,
+    date: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*.*DEL\s*(?<day>[\d\/B]{2})\/(?<month>[\d\/B]{2})\/(?<year>[\d\/B]{4})/,
     destination: /^(?<address>.*)$\n^ATTENZIONE: IL NOSTRO/m,
-    delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>\d{1,2})\/(?<month>\d{1,2})\/(?<year>\d{1,2})/,
-    warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>\d{1,2})\.(?<fromMinute>\d{1,2}) ALLE (?<toHour>\d{1,2})\.(?<toMinute>\d{1,2})/,
-    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*G)\s*(?<quantity>\d*)\s*(?<cost>[\d\,\s]*)\n/g,
-    boxCount: /TOTALE COLL[IT]\s*(?<count>\d*)/
+    delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>[\d\/B]{1,2})\/(?<month>[\d\/B]{1,2})\/(?<year>[\d\/B]{1,2})/,
+    warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>[\d\/B]{1,2})\.(?<fromMinute>[\d\/B]{1,2}) ALLE (?<toHour>[\d\/B]{1,2})\.(?<toMinute>[\d\/B]{1,2})/,
+    products: /(?<code>[\d\/B]{6,})\s*(?<description>[\w\s]*G)\s*(?<quantity>[\d\/B]*)\s*(?<cost>[\d\/B\,\s]*)\n/g,
+    boxCount: /TOTALE COLL[IT]\s*(?<count>[\d\/B]*)/
   },
   confirmation: {
-    number: /ORDINE NR. (?<number>\w\/\d*)/,
-    products: /(?<code>\d{6,})\s*(?<description>[\w\s]*?G*)\s{4,}(?<boxes>\d*)\s{4,}(?<items>\d*)\s{5,}(?<unitCost>\d{1,2},\s{0,1}\d{4,})\s{4,}(?<totalCost>\d{1,5},\s{0,1}\d{4,})/g,
-    totals: /\n(?<boxTotal>\d*)\s{1,}(?<itemTotal>[\d\.]*)\s{5,}(?<costTotal>[\d\.]*,\s{0,1}\d{4,})\nSi prega di verificare/,
-    date: /Distinti saluti\nLimito di Pioltello, (?<day>\d{2,}) (?<month>\w*) (?<year>\d{4})/
+    number: /ORDINE NR. (?<number>\w\/[\d\/B]*)/,
+    products: /(?<code>[\d\/B]{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>[\d\/B]*)\s*(?<items>[\d\/B\.]*)\s{5,}(?<unitCost>[\d\/B]{1,2},\s{0,1}[\d\/B]{2,})\s*(?<totalCost>[\d\/B\.]*,\s{0,1}[\d\/B]{3,})/g,
+    totals: /\n(?<boxTotal>[\d\/B]*)\s{1,}(?<itemTotal>[\d\/B\.]*)\s{5,}(?<costTotal>[\d\.\/B]*,\/{0,1}\s{0,1}[\d\/B]{2,})\nSi prega di verificare/,
+    date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/B]{2,}) (?<month>\w*) (?<year>[\d\/B]{4})/
   }
 };
 
@@ -68,6 +70,51 @@ const findMatchingProduct = (code, products) => {
   }
   return matchingProduct;
 };
+
+// const findFirstDifference = (str1, str2) =>
+//   str2[[...str1].findIndex((el, index) => el !== str2[index])];
+
+const findFirstDifference = (str1, str2) => {
+  const index = [...str1].findIndex(function(el, index) {
+    return el !== str2[index]
+  });
+
+  if (index !== undefined) {
+    return {
+      char: str2[index],
+      index
+    }
+  }
+};
+
+const fixNumber = (number, estimate) => {
+
+  let numberString = number.toFixed(2);
+  let estimateString = estimate.toFixed(2);
+
+  const iterations = Math.abs(numberString.length - estimateString.length);
+
+  for (let i = 0; i < iterations; i++) {
+    let diff = findFirstDifference(estimateString, numberString);
+    if (diff) {
+      let a = numberString.split('');
+      a.splice(diff.index, 1);
+      numberString = a.join('');
+    }
+  }
+
+  for (let i = 0; i < levenshtein(numberString, estimateString); i++) {
+    let diff = findFirstDifference(estimateString, numberString);
+    if (diff && ambiguousChars.indexOf(diff.char) > -1) {
+      const a = numberString.split('');
+      a[diff.index] = estimateString[diff.index];
+      numberString = a.join('');
+    }
+  }
+
+  return numberString === estimateString ? parseFloat(estimateString) : null;
+};
+
 
 const analyzeOrder = (options) => {
 
@@ -194,7 +241,7 @@ const analyzeOrder = (options) => {
           ean: matchingProduct.ean,
           customer_code: matchingProduct.customer_code,
           description: matchingProduct.description,
-          boxes: parseInt(match.groups.quantity),
+          boxes: parseInt(match.groups.quantity.replace('.', '')),
         };
         orderProduct.items = orderProduct.boxes * matchingProduct.boxItems;
         order.products.push(orderProduct);
@@ -209,7 +256,9 @@ const analyzeOrder = (options) => {
   }
     
   if (order.totals.boxes !== boxes) {
-    order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
+    if (!fixNumber(boxes, order.totals.boxes)) {
+      order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
+    }
   }
 
   return order;
@@ -290,21 +339,32 @@ const analyzeConfirmation = (options) => {
       const product = {
         customer_code: match.groups.code.trim(),
         description: match.groups.description.trim(),
-        boxes: parseInt(match.groups.boxes),
-        items: parseInt(match.groups.items),
-        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.')),
-        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace(',', '.'))
+        boxes: parseInt(match.groups.boxes.replace('.', '')),
+        items: parseInt(match.groups.items.replace('.', '')),
+        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.').replace('B', '0').replace('/', '7')),
+        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7'))
       };
 
-      if (product.total_cost.toFixed(4) !== (product.items * product.unit_cost).toFixed(4)) {
-        if ((Math.floor(product.total_cost / 1000) === 2)
-          && ((parseInt(product.total_cost) % 10) === 9)
-        ) {
-          const fixedTotalCost = (parseInt(product.total_cost) - 9) / 10 + product.total_cost - parseInt(product.total_cost);
-          if (fixedTotalCost.toFixed(4) === (product.items * product.unit_cost).toFixed(4)) {
-            product.total_cost = parseFloat((fixedTotalCost).toFixed(4));
+      if (product.total_cost.toFixed(2) !== (product.items * product.unit_cost).toFixed(2)) {
+
+        const fixedTotalCost = fixNumber(
+          parseFloat(product.total_cost.toFixed(2)),
+          parseFloat((product.items * product.unit_cost).toFixed(2))
+        );
+
+        if (fixedTotalCost) {
+          product.total_cost = fixedTotalCost;
+        } else {
+          const fixedItems = fixNumber(
+            parseInt(product.items),
+            parseInt(product.total_cost / product.unit_cost)
+          );
+
+          if (fixedItems) {
+            product.items = fixedItems;
           }
         }
+
       }
 
       if (product.customer_code) {
@@ -313,6 +373,7 @@ const analyzeConfirmation = (options) => {
         product.customer_code = matchingProduct.customer_code;
         product.ean = matchingProduct.ean;
         product.description = matchingProduct.description;
+        product.boxItems = matchingProduct.boxItems;
 
         if (product.items !== product.boxes * matchingProduct.boxItems) {
           confirmation.anomalies.push(`Product "${product.description}": item count (${product.items}) is not equal to box count (${product.boxes}) multiplied by ${matchingProduct.boxItems}`);
@@ -329,7 +390,7 @@ const analyzeConfirmation = (options) => {
   if (match) {
     confirmation.totals.boxes = parseInt(match.groups.boxTotal.replace('.', ''));
     confirmation.totals.items = parseInt(match.groups.itemTotal.replace('.', ''));
-    confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.'));
+    confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7'));
   } else {
     confirmation.anomalies.push('Totals not recognized');
   }
@@ -341,27 +402,77 @@ const analyzeConfirmation = (options) => {
   let cost = 0;
 
   for (const product of confirmation.products) {
-    if (product.items !== 8 * product.boxes) {
-      confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of boxes (${product.boxes}) multiplied by 8`);
+    if (product.items !== product.boxItems * product.boxes) {
+      confirmation.anomalies.push(`Product "${product.description}": number of items (${product.items}) is not equal to number of boxes (${product.boxes}) multiplied by ${product.boxItems}`);
     }
-    if ((product.items * product.unit_cost).toFixed(4) !== product.total_cost.toFixed(4)) {
-      confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
+
+    delete product.boxItems;
+
+    if ((product.items * product.unit_cost).toFixed(2) !== product.total_cost.toFixed(2)) {
+
+      let fixed = false;
+
+      if (Math.abs(product.items * product.unit_cost - product.total_cost) < 0.01) {
+        product.total_cost = product.items * product.unit_cost;
+        fixed = true;
+      } else {
+        const calculatedUnitCost = product.total_cost / product.items;
+
+        const fixedUnitCost = fixNumber(product.unit_cost, calculatedUnitCost);
+        if (fixedUnitCost) {
+          product.unit_cost = fixedUnitCost;
+          fixed = true;
+        }
+      }
+
+
+      if (!fixed) {
+        confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
+      }
     }
+
     boxes += product.boxes;
     items += product.items;
     cost += product.total_cost;
   }
 
   if (boxes !== confirmation.totals.boxes) {
-    confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`)
+    const fixedBoxes = fixNumber(confirmation.totals.boxes, boxes);
+    if (fixedBoxes) {
+      confirmation.totals.boxes = fixedBoxes;
+    } else {
+      confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`);
+    }
   }
 
   if (items !== confirmation.totals.items) {
-    confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`)    
+    const fixedItems = fixNumber(confirmation.totals.items, items);
+    if (fixedItems) {
+      confirmation.totals.items = fixedItems;
+    } else {
+      confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`);
+    }
   }
 
-  if (cost.toFixed(4) !== confirmation.totals.cost.toFixed(4)) {
-    confirmation.anomalies.push(`Total cost (€ ${confirmation.totals.cost}) is not equal to the sum of costs of products (€ ${cost})`)
+
+  if (cost.toFixed(2) !== confirmation.totals.cost.toFixed(2)) {
+    let fixed = false;
+    if (Math.abs(cost - confirmation.totals.cost) < 0.01) {
+      confirmation.totals.cost = parseFloat(cost.toFixed(2));
+      fixed = true;
+    } else {
+      const fixedTotalCost = fixNumber(
+        parseFloat(confirmation.totals.cost.toFixed(2)),
+        parseFloat(cost.toFixed(2))
+      );
+      if (fixedTotalCost) {
+        confirmation.totals.cost = fixedTotalCost;
+        fixed = true;
+      }
+    }
+    if (!fixed) {
+      confirmation.anomalies.push(`Total cost (€ ${confirmation.totals.cost}) is not equal to the sum of costs of products (€ ${cost})`)
+    }
   }
 
   return confirmation;
