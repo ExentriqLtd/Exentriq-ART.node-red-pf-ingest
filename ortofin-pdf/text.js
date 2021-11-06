@@ -134,7 +134,14 @@ const analyzeConfirmation = (items, products, filename) => {
     if (index > -1) {
 
       // sometimes "lotto" and "scadenza" are missing...
-      const offset = items[index + 4] === 'C212' ? 0 : 3;
+      let offset;
+      if (items[index + 4] === 'C212') {
+        offset = 0;
+      } else if (items[index + 6] === 'C212') {
+        offset = 2;
+      } else {
+        offset = 3;
+      }
 
       const orderProduct = {
         code: product.code,
