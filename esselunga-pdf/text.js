@@ -256,7 +256,9 @@ const analyzeOrder = (options) => {
   }
     
   if (order.totals.boxes !== boxes) {
-    order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
+    if (!fixNumber(boxes, order.totals.boxes)) {
+      order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
+    }
   }
 
   return order;
@@ -435,11 +437,21 @@ const analyzeConfirmation = (options) => {
   }
 
   if (boxes !== confirmation.totals.boxes) {
-    confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`)
+    const fixedBoxes = fixNumber(confirmation.totals.boxes, boxes);
+    if (fixedBoxes) {
+      confirmation.totals.boxes = fixedBoxes;
+    } else {
+      confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`);
+    }
   }
 
   if (items !== confirmation.totals.items) {
-    confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`)    
+    const fixedItems = fixNumber(confirmation.totals.items, items);
+    if (fixedItems) {
+      confirmation.totals.items = fixedItems;
+    } else {
+      confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`);
+    }
   }
 
 
