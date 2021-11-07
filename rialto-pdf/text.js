@@ -1,31 +1,39 @@
-const getDateFromString = (stringDate) => {
+const regexes = {
+  warehouse: /(?<delivery>\d{1,2}\/\d{1,2}\/\d{2}) dalle ore (?<from>\d{1,2}:\d{2}) alle ore (?<to>\d{1,2}:\d{2})/
+};
+
+const getDateFromString = (dateString) => {
 
   try {
-    return new Date(parseInt(stringDate.slice(6, 10)), parseInt(stringDate.slice(3, 5)) - 1, parseInt(stringDate.slice(0, 2)), 10, 00).toISOString().slice(0, 10);
+    const match = dateString.match(/(?<day>\d{1,2})\/(?<month>\d{1,2})\/(?<year>\d{2})/);
+    if (match) {
+      const parsedDate = {
+        day:  parseInt(match.groups.day),
+        month: parseInt(match.groups.month),
+        year: parseInt(match.groups.year) + 2000
+      };
+      return new Date(parsedDate.year, parsedDate.month - 1, parsedDate.day, 10, 00).toISOString().slice(0, 10);
+    }
   } catch (error) {
     throw ('Invalid date');
   }
-
 };
 
-const getDateFromFilename = (filename) => {
-
-  const chunks = filename.split('_');
-  if (chunks.length === 3) {
-    const stringDate = chunks[1];
-    try {
-      return new Date(parseInt(stringDate.slice(0, 4)), parseInt(stringDate.slice(4, 6)) - 1, parseInt(stringDate.slice(6, 8)), 10, 00).toISOString().slice(0, 10);
-    } catch (error) {
-      throw('Invalid date');
+const getTimeFromString = (timeString) => {
+  try {
+    const match = timeString.match(/(?<hour>\d{1,2}):(?<minute>\d{2})/);
+    if (match) {
+      return `${match.groups.hour.padStart(2, 0)}:${match.groups.minute.padStart(2, 0)}`;
     }
-
+  } catch (error) {
+    throw ('Invalid time');
   }
 };
 
 const analyzeOrder = (items, products, filename) => {
 
   const order = {
-    customer: 'Ortofin',
+    customer: 'Rialto',
     anomalies: [],
     number: null,
     overrides: false,
@@ -43,63 +51,84 @@ const analyzeOrder = (items, products, filename) => {
     }
   };
 
-  if (items.find(x => x.indexOf('Il Presente Annulla e Sostituisce il Precedente') > -1)) {
-    order.overrides = true;
+  // if (items.find(x => x.indexOf('Il Presente Annulla e Sostituisce il Precedente') > -1)) {
+  //   order.overrides = true;
+  // }
+
+  const detailsStart = items.map(x => x.slice(0, 9)).indexOf('Ordine n.');
+  const productsStart = items.indexOf('-'.repeat(132));
+  const productsEnd = items.indexOf('**** FINE ORDINE ****');
+
+  order.number = items[detailsStart + 7];
+
+  try {
+    order.date = getDateFromString(items[detailsStart + 9]);
+  } catch (error) {
+    order.anomalies.push('Order date is not valid');
   }
 
-  let index = items.indexOf('Origine');
+  order.destination.address = items[detailsStart + 11];
 
-  if (index > -1 && items[index + 1] === '') {
+  const warehouse = items[detailsStart + 14];
+
+  try {
+    const match = warehouse.match(regexes.warehouse);
+    if (match) {
+      order.delivery = getDateFromString(match.groups.delivery);
+      order.destination.from = getTimeFromString(match.groups.from);
+      order.destination.to = getTimeFromString(match.groups.to);
+    }
+  } catch (error) {
+    order.anomalies.push('Delivery date is not valid');
+  }
+
+
+
+  // try {
+  //   order.delivery = getDateFromString(deliveryDate);
+  // } catch (error) {
+  //   order.anomalies.push('Delivery date is not valid');
+  // }
+
+
+  if (productsStart > -1 && productsEnd > productsStart) {
 
     for (const product of products) {
 
       const index = items.indexOf(product.customer_code);
       if (index > -1) {
 
-        // sometimes "Imb" is missing...
-        const offset = items[index + 3] === 'C212' ? 1 : 0;
+        let lastIndex = 0;
 
-        const orderProduct = {
-          code: product.code,
-          customer_code: product.customer_code,
-          ean: product.ean,
-          description: product.description,
-          boxes: parseInt(items[index + 7 + offset]),
-          items: parseInt(items[index + 4 + offset])
+        for (let i = 1; i < 20; i++) {
+          if (items[index + i].match(/\d{2}\/\d{2}\/\d{2}/)) {
+            lastIndex = i;
+            break;
+          }
         }
-        if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
-          order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
+
+        if (lastIndex === 0) {
+          order.anomalies.push(`Product "${product.description}": cannot parse details`);
+        } else {
+          const orderProduct = {
+            code: product.code,
+            customer_code: product.customer_code,
+            ean: product.ean,
+            description: product.description,
+            boxes: parseInt(items[index + lastIndex - 6]),
+            items: parseInt(items[index + lastIndex - 6] * items[index + lastIndex - 8])
+          }
+          if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
+            order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
+          }
+          order.totals.boxes += orderProduct.boxes;
+          order.totals.items += orderProduct.items;
+          order.products.push(orderProduct);  
         }
-        order.totals.boxes += orderProduct.boxes;
-        order.totals.items += orderProduct.items;
-        order.products.push(orderProduct);
       }
     }  
   } else {
     order.anomalies.push('Product table not recognized');
-  }
-
-
-  index = items.indexOf('Pag 1 di 1');
-  if (index > -1) {
-    order.number = items[index - 3];
-    const orderDate = items[index - 2];
-    try {
-      order.date = getDateFromString(orderDate);
-    } catch (error) {
-      order.anomalies.push('Order date is not valid');
-    }
-    const deliveryDate = items[index - 1];
-    try {
-      order.delivery = getDateFromString(deliveryDate);
-    } catch (error) {
-      order.anomalies.push('Delivery date is not valid');
-    }
-    try {
-      order.destination.address = `${items[index + 3]}, ${items[index + 4]}`;      
-    } catch (error) {
-      order.anomalies.push('Destination not recognized');
-    }
   }
 
   return order;
@@ -185,12 +214,12 @@ const analyzeConfirmation = (items, products, filename) => {
 const documentTypes = [
   {
     name: 'order',
-    needle: 'ORDINE D\'ACQUISTO',
+    needle: 'Ordine n.',
     analyzer: analyzeOrder
   },
   {
     name: 'confirmation',
-    needle: 'RISCONTRO D.D.T.',
+    needle: 'Riscontro n.',  // ??? to be confirmed
     analyzer: analyzeConfirmation
   }
 ];
