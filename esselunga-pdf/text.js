@@ -47,6 +47,9 @@ const fixDatePart = (datePart) => {
   if (datePart === 309 || datePart === 306) {
     datePart = 30;
   }
+  if (datePart > 90 && datePart < 100) {
+    datePart -= 90;
+  }
   if (datePart > 80 && datePart < 90) {
     datePart -= 80;
   }
