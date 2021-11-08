@@ -50,7 +50,6 @@ const analyzeOrder = (items, products, filename) => {
   let index = items.indexOf('Origine');
 
   if (index > -1 && items[index + 1] === '') {
-    const productCount = ((items.length - (index + 2)) / 9);
 
     for (const product of products) {
 

@@ -21,7 +21,8 @@
       "elasticsearch-config": "elasticsearch-config/elasticsearch-config.js",
       "elasticsearch-create": "elasticsearch-create/elasticsearch-create.js",
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
-      "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js"
+      "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js",
+      "rialto-pdf": "rialto-pdf/rialto-pdf.js"
     }
   }
 }
