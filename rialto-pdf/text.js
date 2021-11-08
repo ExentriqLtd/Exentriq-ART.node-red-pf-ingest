@@ -1,5 +1,64 @@
-const regexes = {
-  warehouse: /(?<delivery>\d{1,2}\/\d{1,2}\/\d{2}) dalle ore (?<from>\d{1,2}:\d{2}) alle ore (?<to>\d{1,2}:\d{2})/
+const CHAR_WIDTH = 5.4;
+
+const ORDER_COLUMNS = {
+  order: {
+    number: [9, 17],
+    date: [22, 30]
+  },
+  destination: {
+    address: [21, 71]
+  },
+  delivery: {
+    delivery: [15, 23],
+    from: [34, 39],
+    to: [49, 53]
+  },
+  product: {
+    customerCode: [0, 10],
+    code: [11, 21],
+    description: [22, 47],
+    unitOfMeasure: [48, 49],
+    size:[50, 56],
+    boxItems: [57, 59],
+    boxes: [60, 65],
+    gifts: [66, 71],
+    cost: [72, 81],
+    date: [82, 91]
+  }
+};
+
+const expandSpaces = (width) => {
+  const count = Math.round(parseFloat(width.toFixed(2)) / CHAR_WIDTH);
+  return ' '.repeat(count);
+};
+
+const getRows = (chunks) => {
+
+  let row = '';
+  const rows = chunks.reduce((acc, obj) => {
+    if (obj.str === ' ') {
+      row += expandSpaces(obj.width);
+    } else {
+      row += obj.str;
+    }
+    if (obj.hasEOL) {
+      acc.push(row);
+      row = '';
+    }
+    return acc;
+  }, []);
+  return rows;
+};
+
+const getParsedObject = (row, objectColumns) => {
+
+  const parsedObject = {};
+  for (const prop of Object.keys(objectColumns)) {
+    const [ start, end ] = objectColumns[prop];
+    const value = row.slice(start, end).trim();
+    parsedObject[prop] = value;
+  }
+  return parsedObject;
 };
 
 const getDateFromString = (dateString) => {
@@ -51,84 +110,69 @@ const analyzeOrder = (items, products, filename) => {
     }
   };
 
-  // if (items.find(x => x.indexOf('Il Presente Annulla e Sostituisce il Precedente') > -1)) {
-  //   order.overrides = true;
-  // }
+  const orderRowStart = items.findIndex(x => x.str.startsWith('Ordine n.'));
+  const destinationStart = items.findIndex(x => x.str.startsWith('Destinatario merce :'));
+  const deliveryRowStart = items.findIndex(x => x.str.startsWith('Data consegna:'));
+  const deliveryRowEnd = items.findIndex(x => x.str.startsWith('Contatti:'));
+  const productTableStart = items.findIndex(x => x.hasEOL && x.str === '-'.repeat(132)) + 1;
+  const productTableEnd = items.findIndex(x => x.hasEOL && x.str === '**** FINE ORDINE ****') - 3;
 
-  const detailsStart = items.map(x => x.slice(0, 9)).indexOf('Ordine n.');
-  const productsStart = items.indexOf('-'.repeat(132));
-  const productsEnd = items.indexOf('**** FINE ORDINE ****');
-
-  order.number = items[detailsStart + 7];
-
-  try {
-    order.date = getDateFromString(items[detailsStart + 9]);
-  } catch (error) {
-    order.anomalies.push('Order date is not valid');
-  }
-
-  order.destination.address = items[detailsStart + 11];
-
-  const warehouse = items[detailsStart + 14];
-
-  try {
-    const match = warehouse.match(regexes.warehouse);
-    if (match) {
-      order.delivery = getDateFromString(match.groups.delivery);
-      order.destination.from = getTimeFromString(match.groups.from);
-      order.destination.to = getTimeFromString(match.groups.to);
+  if (orderRowStart > -1 && destinationStart > -1) {
+    const orderRow = getRows(items.slice(orderRowStart, destinationStart))[0];
+    const { number, date } = getParsedObject(orderRow, ORDER_COLUMNS.order);
+    order.number = number;
+    try {      
+      order.date = getDateFromString(date);  
+    } catch (error) {
+      order.anomalies.push('Order date is not valid');
     }
-  } catch (error) {
-    order.anomalies.push('Delivery date is not valid');
+  } else {
+    order.anomalies.push('Order number and date not recognized');
   }
 
+  if (destinationStart > -1 && deliveryRowStart > -1) {
+    const destinationRow = getRows(items.slice(destinationStart, deliveryRowStart))[0];
+    const { address } = getParsedObject(destinationRow, ORDER_COLUMNS.destination)
+    order.destination.address = address.replace('CARPRANO', 'CARPIANO');  
+  } else {
+    order.anomalies.push('Destination not found');
+  }
 
+  if (deliveryRowStart > -1 && deliveryRowEnd > -1) {
+    const deliveryRow = getRows(items.slice(deliveryRowStart, deliveryRowEnd))[0];
+    const { delivery, from, to } = getParsedObject(deliveryRow, ORDER_COLUMNS.delivery);
+    try {
+      order.delivery = getDateFromString(delivery);      
+    } catch (error) {
+      order.anomalies.push('Delivery date is not valid');
+    }
+    order.destination.from = getTimeFromString(from);
+    order.destination.to = getTimeFromString(to);  
+  } else {
+    order.anomalies.push('Delivery date not found');
+  }
 
-  // try {
-  //   order.delivery = getDateFromString(deliveryDate);
-  // } catch (error) {
-  //   order.anomalies.push('Delivery date is not valid');
-  // }
-
-
-  if (productsStart > -1 && productsEnd > productsStart) {
-
-    for (const product of products) {
-
-      const index = items.indexOf(product.customer_code);
-      if (index > -1) {
-
-        let lastIndex = 0;
-
-        for (let i = 1; i < 20; i++) {
-          if (items[index + i].match(/\d{2}\/\d{2}\/\d{2}/)) {
-            lastIndex = i;
-            break;
-          }
-        }
-
-        if (lastIndex === 0) {
-          order.anomalies.push(`Product "${product.description}": cannot parse details`);
-        } else {
-          const orderProduct = {
-            code: product.code,
-            customer_code: product.customer_code,
-            ean: product.ean,
-            description: product.description,
-            boxes: parseInt(items[index + lastIndex - 6]),
-            items: parseInt(items[index + lastIndex - 6] * items[index + lastIndex - 8])
-          }
-          if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
-            order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
-          }
-          order.totals.boxes += orderProduct.boxes;
-          order.totals.items += orderProduct.items;
-          order.products.push(orderProduct);  
-        }
+  if (productTableStart > -1 && productTableEnd > -1) {
+    const productRows = items.slice(productTableStart, productTableEnd);
+    for (const productRow of getRows(productRows)) {
+      const parsedProduct = getParsedObject(productRow, ORDER_COLUMNS.product);
+      const matchingProduct = products.find(x => x.customer_code === parsedProduct.customerCode);
+      if (matchingProduct) {
+        const product = {
+          customer_code: matchingProduct.customer_code,
+          code: matchingProduct.code,
+          ean: matchingProduct.ean,
+          description: matchingProduct.description,
+          boxes: parseInt(parsedProduct.boxes),
+        };
+        product.items = product.boxes * matchingProduct.boxItems;
+        order.products.push(product);
+        order.totals.boxes += product.boxes;
+        order.totals.items += product.items
       }
     }  
   } else {
-    order.anomalies.push('Product table not recognized');
+    order.anomalies.push('Product table not found');
   }
 
   return order;
@@ -152,61 +196,6 @@ const analyzeConfirmation = (items, products, filename) => {
       cost: 0
     }
   };
-
-  if (filename) {
-    confirmation.date = getDateFromFilename(filename);
-  }
-
-  for (const product of products) {
-    const index = items.indexOf(product.customer_code);
-    if (index > -1) {
-
-      // sometimes "lotto" and "scadenza" are missing...
-      let offset;
-      if (items[index + 4] === 'C212') {
-        offset = 0;
-      } else if (items[index + 6] === 'C212') {
-        offset = 2;
-      } else {
-        offset = 3;
-      }
-
-      const orderProduct = {
-        code: product.code,
-        customer_code: product.customer_code,
-        ean: product.ean,
-        description: product.description,
-        boxes: parseInt(items[index + 6 + offset]),
-        items: parseInt(items[index + 7 + offset]),
-        unit_cost: parseFloat(items[index + 8 + offset].replace(',', '.'))
-      }
-      if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
-        confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
-      }
-      orderProduct.total_cost = parseFloat((orderProduct.unit_cost * orderProduct.items).toFixed(4));
-      confirmation.totals.boxes += orderProduct.boxes;
-      confirmation.totals.items += orderProduct.items;
-      confirmation.totals.cost += orderProduct.total_cost;
-      confirmation.products.push(orderProduct);
-    }
-  }
-  confirmation.totals.cost = parseFloat(confirmation.totals.cost.toFixed(4));
-
-  const index = items.indexOf('Vostro D.D.T. di consegna numero');
-  if (index > -1) {
-    try {
-      confirmation.shipping.code = items[index + 1];
-    } catch (error) {
-      confirmation.anomalies.push('Shipping code not recognized');
-    }
-
-    try {
-      confirmation.shipping.date = getDateFromString(items[index + 2]);
-    } catch (error) {
-      confirmation.anomalies.push('Shipping date is not valid');
-    }
-  }
-
 
   return confirmation;
 };
@@ -237,7 +226,7 @@ const analyzeText = (text, products, filename = null) => {
       if (text.items.filter(x => x.str.startsWith(documentType.needle)).length === 1) {
         result = {
           documentType: documentType.name,
-          content: documentType.analyzer(text.items.map(x => x.str.trim()), products, filename)
+          content: documentType.analyzer(text.items, products, filename)
         };
         break;
       }
