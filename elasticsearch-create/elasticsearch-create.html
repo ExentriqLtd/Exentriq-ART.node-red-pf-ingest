@@ -6,12 +6,15 @@
     defaults: {
       name: { value: '' },
       elasticsearch: { value: '', type: 'elasticsearch-config' },
-      plant: { value: '', required: true},
-      service: { value: '', required: true },
-      doctype: { value: 'documentType', required: true },
+      mode: { value: 'structured' },
+      plant: { value: ''},
+      service: { value: '' },
+      doctype: { value: 'documentType' },
       doctypeType: { value: 'msg' },
-      entity: { value: 'payload', required: true },
-      entityType: { value: 'msg' }
+      entity: { value: 'payload' },
+      entityType: { value: 'msg' },
+      body: { value: 'body' },
+      bodyType: { value: 'msg' }
     },
     inputs: 1,
     outputs: 1,
@@ -21,6 +24,11 @@
     },
     paletteLabel: 'elasticsearch create',
     oneditprepare: function() {
+      $('#node-input-mode').on('change', function(e) {
+        const val = $(this).val();
+        $('.node-row-mode-structured').toggle(val === 'structured');
+        $('.node-row-mode-flat').toggle(val === 'flat');
+      });
       $('#node-input-plant').typedInput({
         types: [
           {
@@ -54,6 +62,11 @@
         types: ['msg', 'json'],
         typeField: '#node-input-entityType'
       });
+      $('#node-input-body').typedInput({
+        default: 'msg',
+        types: ['msg', 'json'],
+        typeField: '#node-input-bodyType'
+      });
     }
     // oneditsave: function() {
     //   // debugger;
@@ -72,22 +85,38 @@
     <input type="text" id="node-input-elasticsearch" placeholder="Elasticsearch">
   </div>
   <div class="form-row">
-    <label for="node-input-plant"><i class="fa fa-leaf"></i> Plant</label>
-    <input type="text" id="node-input-plant" placeholder="Plant">
+    <label for="node-input-mode">Mode</label>
+    <select type="text" id="node-input-mode" style="width: 300px;">
+        <option value="structured">Structured</option>
+        <option value="flat">Flat</option>
+    </select>
   </div>
-  <div class="form-row">
-    <label for="node-input-service"><i class="fa fa-cogs"></i> Service</label>
-    <input type="text" id="node-input-service" placeholder="Service">
+  <div class="node-row-mode-structured">
+    <div class="form-row">
+      <label for="node-input-plant"><i class="fa fa-leaf"></i> Plant</label>
+      <input type="text" id="node-input-plant" placeholder="Plant">
+    </div>
+    <div class="form-row">
+      <label for="node-input-service"><i class="fa fa-cogs"></i> Service</label>
+      <input type="text" id="node-input-service" placeholder="Service">
+    </div>
+    <div class="form-row">
+      <label for="node-input-doctype"><i class="fa fa-file-code-o"></i> Type</label>
+      <input type="text" id="node-input-doctype">
+      <input type="hidden" id="node-input-doctypeType">
+    </div>
+    <div class="form-row">
+      <label for="node-input-entity"><i class="fa fa-code"></i> Entity</label>
+      <input type="text" id="node-input-entity">
+      <input type="hidden" id="node-input-entityType">
+    </div>  
   </div>
-  <div class="form-row">
-    <label for="node-input-doctype"><i class="fa fa-file-code-o"></i> Type</label>
-    <input type="text" id="node-input-doctype">
-    <input type="hidden" id="node-input-doctypeType">
-  </div>
-  <div class="form-row">
-    <label for="node-input-entity"><i class="fa fa-code"></i> Entity</label>
-    <input type="text" id="node-input-entity">
-    <input type="hidden" id="node-input-entityType">
+  <div class="node-row-mode-flat">
+    <div class="form-row">
+      <label for="node-input-body"><i class="fa fa-code"></i> Body</label>
+      <input type="text" id="node-input-body">
+      <input type="hidden" id="node-input-bodyType">
+    </div>
   </div>
 </script>
 

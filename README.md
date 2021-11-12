@@ -16,6 +16,9 @@ The `confirmations` index must be configured with the following mapping:
 PUT /confirmations/_mapping
 {
   "properties": {
+    "timestamp": {
+      "type": "date"
+    },
     "entity": {
       "properties": {
         "products": {
@@ -41,3 +44,24 @@ PUT /confirmations/_mapping
 }
 ~~~
 
+~~~http
+PUT /orders/_mapping
+{
+  "properties": {
+    "timestamp": {
+      "type": "date"
+    }
+  }
+}
+~~~
+
+~~~http
+PUT /orders-flat/_mapping
+{
+  "properties": {
+    "timestamp": {
+      "type": "date"
+    }
+  }
+}
+~~~

@@ -1,0 +1,76 @@
+<script type="text/javascript">
+
+  RED.nodes.registerType('elasticsearch-search', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      elasticsearch: { value: '', type: 'elasticsearch-config' },
+      query: { value: 'query', required: true },
+      queryType: { value: 'msg' }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'elasticsearch.svg',
+    label: function() {
+      return this.name || 'elasticsearch search';
+    },
+    paletteLabel: 'elasticsearch search',
+    oneditprepare: function() {
+      $("#node-input-query").typedInput({
+        default: 'msg',
+        types: ['msg', 'json'],
+        typeField: '#node-input-queryType'
+      });
+    }
+    // oneditsave: function() {
+    //   // debugger;
+    //   const node = this;
+    // }
+  });
+  </script>
+  
+<script type="text/html" data-template-name="elasticsearch-search">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-elasticsearch"><i class="fa fa-database"></i> Elasticsearch</label>
+    <input type="text" id="node-input-elasticsearch" placeholder="Elasticsearch">
+  </div>
+  <div class="form-row">
+    <label for="node-input-query"><i class="fa fa-question"></i> Query</label>
+    <input type="text" id="node-input-query" placeholder="Query">
+    <input type="hidden" id="node-input-queryType">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="elasticsearch-search">
+  <p>Searches the configured Elasticsearch node and index.</p>
+  
+  <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload<span class="property-type">object</span></dt>
+        <dd>The entity to be written on Elasticsearch.</dd>
+        <dt>documentType<span class="property-type">array</span></dt>
+        <dd>The type to be written on Elasticsearch.</dd>
+    </dl>
+    
+  <h3>Details</h3>
+  <p>This node searches on the configured Elasticsearch node and index.</p>
+  <p>The payload sent to Elasticsearch has the following structure:</p>
+<pre>
+{
+  index: '...',
+  body: {
+    uuid: '...',      // generated UUIDv4
+    plant: '...',
+    service: '...',
+    type: '...',      // 'oreder', 'confirmation' etc.
+    timestamp: ...,   // Unix timestamp
+    entity: {...}     // msg.payload
+  }
+}
+</pre>
+</script>
