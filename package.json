@@ -20,6 +20,7 @@
       "attachment-switch": "attachment-switch/attachment-switch.js",
       "elasticsearch-config": "elasticsearch-config/elasticsearch-config.js",
       "elasticsearch-create": "elasticsearch-create/elasticsearch-create.js",
+      "elasticsearch-search": "elasticsearch-search/elasticsearch-search.js",
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js",
       "rialto-pdf": "rialto-pdf/rialto-pdf.js"

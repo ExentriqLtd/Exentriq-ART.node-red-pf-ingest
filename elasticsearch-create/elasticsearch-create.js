@@ -13,6 +13,9 @@ module.exports = function(RED) {
     this.doctypeType = config.doctypeType;
     this.entity= config.entity;
     this.entityType = config.entityType;
+    this.body = config.body;
+    this.bodyType = config.bodyType;
+    this.mode = config.mode;
 
     const node = this;
 
@@ -20,21 +23,40 @@ module.exports = function(RED) {
 
       try {
         const client = new Client({ node: node.elasticsearch.endpoint });
-        const elasticsearchMessage = {
-          id: msg.messageID,
-          index: node.elasticsearch.index,
-          body: {
-            uuid: uuidv4(),
-            plant: node.plant.toLowerCase(),
-            service: node.service.toLowerCase(),
-            type: node.doctypeType === 'msg' ? msg[node.doctype] : node.doctype,
-            timestamp: msg.date,
-            entity: node.entityType === 'msg' ? msg[node.entity] : node.entity
-          }
-        };
-        await client.create(elasticsearchMessage);
-        // await client.index(elasticsearchMessage);
-        node.send(elasticsearchMessage);
+        let elasticsearchMessage;
+
+        switch (node.mode) {
+          case 'flat':
+            elasticsearchMessage = {
+              id: uuidv4(),
+              index: node.elasticsearch.index,
+              refresh: true,
+              body: node.bodyType === 'msg' ? msg[node.body] : node.body
+            }
+            break;
+          case 'structured':
+            elasticsearchMessage = {
+              id: msg.messageID,
+              index: node.elasticsearch.index,
+              refresh: true,
+              body: {
+                uuid: uuidv4(),
+                plant: node.plant.toLowerCase(),
+                service: node.service.toLowerCase(),
+                type: node.doctypeType === 'msg' ? msg[node.doctype] : node.doctype,
+                timestamp: msg.date,
+                entity: node.entityType === 'msg' ? msg[node.entity] : node.entity
+              }
+            };
+            break;
+          default:
+            break;
+        }
+        if (elasticsearchMessage) {
+          await client.create(elasticsearchMessage);
+          // await client.index(elasticsearchMessage);
+          node.send(msg);  
+        }
         done();
       } catch (error) {
         done(error);
