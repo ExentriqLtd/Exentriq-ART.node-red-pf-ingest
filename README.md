@@ -2,6 +2,11 @@
 
 Node-RED nodes for Planet Farms business document ingestion automation.
 
+## Managed Customers
+
+* Esselunga
+* Ortofin (Iper)
+* Rialto (Il Gigante)
 
 ## Elasticsearch configuration
 
