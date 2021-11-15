@@ -23,7 +23,8 @@
       "elasticsearch-search": "elasticsearch-search/elasticsearch-search.js",
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js",
-      "rialto-pdf": "rialto-pdf/rialto-pdf.js"
+      "rialto-pdf": "rialto-pdf/rialto-pdf.js",
+      "gorillas-xslx": "gorillas-xlsx/gorillas-xlsx.js"
     }
   }
 }
