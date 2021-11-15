@@ -29,7 +29,7 @@ const months = [
 const getDateFromObject = (objectDate) => {
 
   try {
-    return new Date(objectDate.year + (objectDate.year < 2000 ? 2000 : 0), objectDate.month - 1, objectDate.day, 10, 00).toISOString().slice(0, 10);  
+    return new Date(objectDate.year + (objectDate.year < 2000 ? 2000 : 0), objectDate.month - 1, objectDate.day, 10, 00).toISOString().slice(0, 10);
   } catch (error) {
     throw ('Invalid date');
   }
