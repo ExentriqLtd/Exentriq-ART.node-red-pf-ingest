@@ -8,29 +8,43 @@
     { "code": "200001", "ean": "80593008500??", "customer_code": "A6500????", "description": "Basilicooh 25g", "boxItems": 10 }
   ];
 
-  
-    RED.nodes.registerType('gorillas-xslx', {
-      category: 'Planet Farms',
-      color: '#73938b',
-      defaults: {
-        name: { value: '' },
-        products: { value: JSON.stringify(productsGorillas) }
-      },
-      inputs: 1,
-      outputs: 1,
-      icon: 'gorillas.svg',
-      label: function() {
-        return this.name || 'Gorillas';
-      },
-      paletteLabel: 'Gorillas',
-      oneditprepare: function() {
-        $("#node-input-products").typedInput({
-          type:"json",
-          types:["json"]
-        });
-      }
-    });
-    </script>
+  const warehousesGorillas = [
+    { "name": "CARPI",         "city": "Milano", "address": "Via Eugenio Carpi,13" },
+    { "name": "COLONNE",       "city": "Milano", "address": "Via Lesmi, 7" },
+    { "name": "DE ANGELI",     "city": "Milano", "address": "Via Lorenzetti, 4" },
+    { "name": "NAVIGLI",       "city": "Milano", "address": "Alzaia Naviglio Pavese, 20" },
+    { "name": "NOLO",          "city": "Milano", "address": "Via Marocco, 8" },
+    { "name": "PORTA ROMANA",  "city": "Milano", "address": "Via Tertulliano, 68" },
+    { "name": "PORTA VENEZIA", "city": "Milano", "address": "Via Vittorio Veneto, 12" }
+  ];
+ 
+  RED.nodes.registerType('gorillas-xslx', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(productsGorillas) },
+      warehouses: { value: JSON.stringify(warehousesGorillas) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'gorillas.svg',
+    label: function() {
+      return this.name || 'Gorillas';
+    },
+    paletteLabel: 'Gorillas',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+      $("#node-input-warehouses").typedInput({
+        type:"json",
+        types:["json"]
+      });
+    }
+  });
+</script>
     
   <script type="text/html" data-template-name="gorillas-xslx">
     <div class="form-row">
@@ -40,6 +54,10 @@
     <div class="form-row">
       <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
       <input type="text" id="node-input-products">
+    </div>
+    <div class="form-row">
+      <label for="node-input-warehouses"><i class="fa fa-database"></i> Warehouses</label>
+      <input type="text" id="node-input-warehouses">
     </div>
   </script>
   

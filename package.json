@@ -12,6 +12,7 @@
     "@fry/bits": "^1.0.2",
     "js-levenshtein": "^1.1.6",
     "pdfjs-dist": "^2.10.377",
+    "read-excel-file": "^5.2.24",
     "tesseract.js": "^2.1.5",
     "uuid": "^8.3.2"
   },

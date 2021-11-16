@@ -50,6 +50,8 @@ PUT /confirmations/_mapping
 }
 ~~~
 
+The `orders` index must be configured with the following mapping:
+
 ~~~http
 PUT /orders/_mapping
 {
@@ -60,6 +62,8 @@ PUT /orders/_mapping
   }
 }
 ~~~
+
+The `orders-flat` index must be configured with the following mapping:
 
 ~~~http
 PUT /orders-flat/_mapping

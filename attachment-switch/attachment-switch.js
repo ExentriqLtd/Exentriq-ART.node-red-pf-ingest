@@ -5,7 +5,7 @@ module.exports = function(RED) {
 
     const node = this;
 
-    const getOutputPortFromAddress = (address, rules) => {
+    const getCustomerFromAddress = (address, rules) => {
 
       if (rules.length === 0) {
         throw(new Error('No customers configured'));
@@ -26,7 +26,15 @@ module.exports = function(RED) {
           const rule = rules.find(x => {
             return x.domains.map(y => y.split('.')).find(y => JSON.stringify(y) == JSON.stringify(domain.split('.').slice(-y.length)));
           });
-          return rule ? rules.indexOf(rule) : null;
+          if (rule) {
+            return {
+              port: rules.indexOf(rule),
+              customer: rule.name,
+              attachmentType: rule.attachment_type
+            };  
+          } else {
+            return null;
+          }
         } else {
           throw(new Error('Sender address not found'));
         }   
@@ -37,21 +45,33 @@ module.exports = function(RED) {
       return null;
     };
 
-    const extractPDFAttachment = (attachments) => {
-      return attachments.find(x => (x.contentType === 'application/pdf' && x.size > 0));
+    const extractAttachment = (attachments, attachmentType) => {
+      let attachment;
+      switch (attachmentType.toLowerCase()) {
+        case 'pdf':
+          attachment = attachments.find(x => (x.contentType === 'application/pdf' && x.size > 0));
+          break;
+        case 'xslx':
+          attachment = attachments.find(x => (x.contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && x.size > 0));
+          break;
+        default:
+          break;
+      }
+      return attachment;
     };
+
 
     this.on('input', async (msg, send, done) => {
 
       try {
 
           const rules = config.rules.map(x => JSON.parse(x));
-          const port = getOutputPortFromAddress(msg.from, rules);
-          if (port !== null && port !== undefined) {
-            const attachment = extractPDFAttachment(msg.attachments);
+          const customer = getCustomerFromAddress(msg.from, rules);
+          if (customer && customer.attachmentType) {
+            const attachment = extractAttachment(msg.attachments, customer.attachmentType);
             if (attachment) {
               const messages = new Array(rules.length);
-              messages[port] = {
+              messages[customer.port] = {
                 payload: attachment.content,
                 filename: attachment.filename,
                 subject: msg.topic,
