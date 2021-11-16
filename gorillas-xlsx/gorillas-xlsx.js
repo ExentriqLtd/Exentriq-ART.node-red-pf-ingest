@@ -88,22 +88,29 @@ module.exports = function(RED) {
               setNodeStatus(node);
 
               const { documentType, orderNumber, delivery } = getDetailsFromSubject(subject, date);
-              const orders = await parseExcel(xlsx, products, warehouses, date);
+              const order = await parseExcel(xlsx, products, warehouses, date);
 
-              for (const order of orders) {
+              const document =  {
+                documentType,
+                date,
+                messageID,
+                payload: {
+                  customer: 'Gorillas',
+                  anomalies: [],
+                  overrides: false,
+                  number: orderNumber,
+                  date: (new Date(date)).toISOString().slice(0, 10),
+                  delivery,
+                  destinations: [],
+                  totals: order.totals
+                }
+              };
 
-                order.customer = 'Gorillas';
-                order.number = orderNumber;
-                order.date = (new Date(date)).toISOString().slice(0, 10);
-                order.delivery = delivery;
+              for (const destination of order.destinations) {
+                document.payload.destinations.push(destination);
+              }
 
-                send({
-                  documentType,
-                  payload: order,
-                  date,
-                  messageID
-                });
-              }  
+              send(document);
             }
             context.status = Status.AVAILABLE;
             setNodeStatus(node);

@@ -128,12 +128,14 @@ const analyzeOrder = (options) => {
     overrides: false,
     date: null,
     delivery: null,
-    destination: {
-      address: null,
-      from: null,
-      to: null
-    },
-    products: [],
+    destinations: [
+      {
+        address: null,
+        from: null,
+        to: null,
+        products: []
+      }
+    ],
     totals: {
       boxes: 0,
       items: 0
@@ -181,7 +183,7 @@ const analyzeOrder = (options) => {
 
   match = text.match(regexes.order.destination);
   if (match) {
-    order.destination.address = match.groups.address.replace(/\s{2,}/g, ' ');
+    order.destinations[0].address = match.groups.address.replace(/\s{2,}/g, ' ');
   } else {
     oreder.anomalies.push('Destination address not recognized');
   }
@@ -211,8 +213,8 @@ const analyzeOrder = (options) => {
 
   match = text.match(regexes.order.warehouse);
   if (match) {
-    order.destination.from = `${match.groups.fromHour}:${match.groups.fromMinute}`;
-    order.destination.to = `${match.groups.toHour}:${match.groups.toMinute}`;
+    order.destinations[0].from = `${match.groups.fromHour}:${match.groups.fromMinute}`;
+    order.destinations[0].to = `${match.groups.toHour}:${match.groups.toMinute}`;
   } else {
     order.anomalies.push('Warehouse opening hours not recognized');
   }
@@ -247,7 +249,7 @@ const analyzeOrder = (options) => {
           boxes: parseInt(match.groups.quantity.replace('.', '')),
         };
         orderProduct.items = orderProduct.boxes * matchingProduct.boxItems;
-        order.products.push(orderProduct);
+        order.destinations[0].products.push(orderProduct);
         order.totals.boxes += orderProduct.boxes
         order.totals.items += orderProduct.items;
       } else {

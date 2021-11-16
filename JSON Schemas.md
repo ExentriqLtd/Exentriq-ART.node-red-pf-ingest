@@ -38,15 +38,12 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         "delivery": {
           "type": "string"
         },
-        "destination": {
-          "$ref": "#/definitions/Destination"
-        },
-        "products": {
+        "destinations": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
-            "$ref": "#/definitions/Product"
+            "$ref": "#/definitions/Destination"
           }
         },
         "totals": {
@@ -58,10 +55,9 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         "customer",
         "date",
         "delivery",
-        "destination",
+        "destinations",
         "number",
         "overrides",
-        "products",
         "totals"
       ],
       "title": "Welcome"
@@ -70,6 +66,9 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "name": {
+          "type": ["string", "null"]
+        },
         "address": {
           "type": "string"
         },
@@ -78,12 +77,21 @@ All fields are mandatory, so they must be present in the JSON that needs to be v
         },
         "to": {
           "type": ["string", "null"]
+        },
+        "products": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/Product"
+          }
         }
       },
       "required": [
         "address",
         "from",
-        "to"
+        "to",
+        "products"
       ],
       "title": "Destination"
     },

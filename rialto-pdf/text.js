@@ -98,12 +98,14 @@ const analyzeOrder = (items, products, filename) => {
     overrides: false,
     date: null,
     delivery: null,
-    destination: {
-      address: null,
-      from: null,
-      to: null
-    },
-    products: [],
+    destinations: [
+      {
+        address: null,
+        from: null,
+        to: null,
+        products: []
+      }
+    ],
     totals: {
       boxes: 0,
       items: 0
@@ -133,7 +135,7 @@ const analyzeOrder = (items, products, filename) => {
   if (destinationStart > -1 && deliveryRowStart > -1) {
     const destinationRow = getRows(items.slice(destinationStart, deliveryRowStart))[0];
     const { address } = getParsedObject(destinationRow, ORDER_COLUMNS.destination)
-    order.destination.address = address.replace('CARPRANO', 'CARPIANO');  
+    order.destinations[0].address = address.replace('CARPRANO', 'CARPIANO');  
   } else {
     order.anomalies.push('Destination not found');
   }
@@ -146,8 +148,8 @@ const analyzeOrder = (items, products, filename) => {
     } catch (error) {
       order.anomalies.push('Delivery date is not valid');
     }
-    order.destination.from = getTimeFromString(from);
-    order.destination.to = getTimeFromString(to);  
+    order.destinations[0].from = getTimeFromString(from);
+    order.destinations[0].to = getTimeFromString(to);  
   } else {
     order.anomalies.push('Delivery date not found');
   }
@@ -166,7 +168,7 @@ const analyzeOrder = (items, products, filename) => {
           boxes: parseInt(parsedProduct.boxes),
         };
         product.items = product.boxes * matchingProduct.boxItems;
-        order.products.push(product);
+        order.destinations[0].products.push(product);
         order.totals.boxes += product.boxes;
         order.totals.items += product.items
       }
