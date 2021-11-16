@@ -31,12 +31,14 @@ const analyzeOrder = (items, products, filename) => {
     overrides: false,
     date: null,
     delivery: null,
-    destination: {
-      address: null,
-      from: null,
-      to: null
-    },
-    products: [],
+    destinations: [
+      {
+        address: null,
+        from: null,
+        to: null,
+        products: []
+      }
+    ],
     totals: {
       boxes: 0,
       items: 0
@@ -72,7 +74,7 @@ const analyzeOrder = (items, products, filename) => {
         }
         order.totals.boxes += orderProduct.boxes;
         order.totals.items += orderProduct.items;
-        order.products.push(orderProduct);
+        order.destinations[0].products.push(orderProduct);
       }
     }  
   } else {
@@ -96,7 +98,7 @@ const analyzeOrder = (items, products, filename) => {
       order.anomalies.push('Delivery date is not valid');
     }
     try {
-      order.destination.address = `${items[index + 3]}, ${items[index + 4]}`;      
+      order.destinations[0].address = `${items[index + 3]}, ${items[index + 4]}`;      
     } catch (error) {
       order.anomalies.push('Destination not recognized');
     }

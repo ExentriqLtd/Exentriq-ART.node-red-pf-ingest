@@ -7,7 +7,7 @@ Node-RED nodes for Planet Farms business document ingestion automation.
 * Esselunga
 * Ortofin (Iper)
 * Rialto (Il Gigante)
-* ...
+* Gorillas
 
 ## Elasticsearch configuration
 
@@ -50,6 +50,8 @@ PUT /confirmations/_mapping
 }
 ~~~
 
+The `orders` index must be configured with the following mapping:
+
 ~~~http
 PUT /orders/_mapping
 {
@@ -60,6 +62,8 @@ PUT /orders/_mapping
   }
 }
 ~~~
+
+The `orders-flat` index must be configured with the following mapping:
 
 ~~~http
 PUT /orders-flat/_mapping
