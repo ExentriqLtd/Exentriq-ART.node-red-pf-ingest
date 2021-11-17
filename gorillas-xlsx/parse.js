@@ -1,5 +1,13 @@
-const { Readable } = require('stream');
+// const { Readable } = require('stream');
+const { Duplex } = require('stream'); 
 const readXlsxFile = require('read-excel-file/node')
+
+const bufferToStream = (buffer) => {
+  const stream = new Duplex();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
+};
 
 const matchingProductByEAN = (ean, products) => {
   const product = products.find(x => x.ean === ean);
@@ -18,7 +26,8 @@ const matchingWarehouseByName = (name, warehouses) => {
 
 const parseOldExcel = async (excelBuffer, products, warehouses) => {
 
-  const rows = await readXlsxFile(Readable.from(excelBuffer));
+  // const rows = await readXlsxFile(Readable.from(excelBuffer));
+  const rows = await readXlsxFile(bufferToStream(excelBuffer));
 
   const destinations = rows.slice(1).reduce((acc, obj) => {
 
@@ -66,7 +75,9 @@ const parseOldExcel = async (excelBuffer, products, warehouses) => {
 
 const parseNewExcel = async (excelBuffer, products, warehouses) => {
 
-  const rows = await readXlsxFile(Readable.from(excelBuffer));
+  // const rows = await readXlsxFile(Readable.from(excelBuffer));
+  const rows = await readXlsxFile(bufferToStream(excelBuffer));
+
 
   const headers = rows[0];
 
