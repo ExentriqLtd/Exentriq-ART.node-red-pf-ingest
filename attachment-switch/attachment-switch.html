@@ -150,6 +150,12 @@
   
   <h3>Inputs</h3>
     <dl class="message-properties">
+        <dt>payload<span class="property-type">string</span></dt>
+        <dd>The plain text version of the message (if present)</dd>
+        <dt>html<span class="property-type">string</span></dt>
+        <dd>The HTML version of the message (if present)</dd>
+        <dt>topic<span class="property-type">string</span></dt>
+        <dd>The subject of the message (if present)</dd>
         <dt>from<span class="property-type">string</span></dt>
         <dd>The email address of the message sender.</dd>
         <dt>attachments<span class="property-type">array</span></dt>
@@ -158,23 +164,32 @@
   
    <h3>Outputs</h3>
   <dl class="message-properties">
-      <dt>payload <span class="property-type">buffer</span></dt>
-      <dd>The buffer of the PDF attachment.</dd>
+      <dt>payload <span class="property-type">buffer | string</span></dt>
+      <dd>The buffer of the attachment; if no attachment is expected, the plain text (preferred) or the HTML version of the message.</dd>
       <dt>filename <span class="property-type">string</span></dt>
-      <dd>The filename of the PDF attachment.</dd>
+      <dd>The filename of the attachment (if any).</dd>
       <dt>subject <span class="property-type">string</span></dt>
       <dd>The subject of the email message.</dd>
+      <dt>date <span class="property-type">date</span></dt>
+      <dd>The date of the email message.</dd>
+      <dt>messageID <span class="property-type">string</span></dt>
+      <dd>The ID of of the email message.</dd>
   </dl>
   
   <h3>Details</h3>
-  <p>This node extracts the main PDF attachment, containing a business document (orders, order confirmations etc.) and routes it through the proper output port.</p>
-  <p>To determine the output port, the email address of the sender (<code>msg.from</code>) is checked against the configured customer list.</p>
   <p>Each customer is defined by a JSON property with the following structure.</p>
 <pre>
 {
-  "name":       // The name of the customer
-  "domains": [] // A list of domains used by the customer
+  "name":            // The name of the customer
+  "domains": []      // A list of domains used by the customer
+  "attachment_type": // Optional. The type of attachment expected
+  "regex":           // Optional. A regular expression to match the subject
 }
 </pre>
-  <p>If the Internet domain of the sender's address matches a domain in the list of a customer's domains, the attachment is forwarded to the corresponding output port.</p>
+  <p>If the Internet domain of the sender's address matches a domain in the list of a customer's domains, the attachment or the parsed email message is forwarded to the corresponding output port.</p>
+  <p>To determine the output port, the email address of the sender (<code>msg.from</code>) is checked against the configured customer list.</p>
+  <p>If an attachment is expected (see below), this node extracts the main attachment containing a business document (order, order confirmation etc.) and routes it through the proper output port.</p>
+  <p>The <code>attachment_type</code> property can be set to <code>pdf</code> or <code>xlsx</code> or it can be omitted.</p>
+  <p>If no attachment type is specified, this node simply forwards the body (text or HTML) of the email message.</p>
+  <p>An optional regular expression can be specified in the <code>regex</code> property; if present, it will be used to match some pattern in the subject of the email message.</p>
 </script>

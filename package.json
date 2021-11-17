@@ -10,11 +10,14 @@
   "dependencies": {
     "@elastic/elasticsearch": "^7.15.0",
     "@fry/bits": "^1.0.2",
+    "axios": "^0.24.0",
     "js-levenshtein": "^1.1.6",
     "pdfjs-dist": "^2.10.377",
     "read-excel-file": "^5.2.24",
     "tesseract.js": "^2.1.5",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "xmldom": "^0.6.0",
+    "xpath": "^0.0.32"
   },
   "node-red": {
     "nodes": {
@@ -25,7 +28,8 @@
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js",
       "rialto-pdf": "rialto-pdf/rialto-pdf.js",
-      "gorillas-xslx": "gorillas-xlsx/gorillas-xlsx.js"
+      "gorillas-xslx": "gorillas-xlsx/gorillas-xlsx.js",
+      "goodeat-url": "goodeat-url/goodeat-url.js"
     }
   }
 }
