@@ -13,20 +13,40 @@ module.exports = function(RED) {
     ERROR: { text: 'error', fill: 'red', shape: 'dot' }
   });
 
-  const getDetailsFromSubject = (subject, date) => {
+  const getDetailsFromSubject = (subject, warehouses) => {
 
-    const d = new Date(date);
-    const regex = /Consegna\s*(?<deliveryDay>\d{2})-(?<deliveryMonth>\d{2})\s*Planet Farms(?:\s*N°\s*\d*_(?<orderNumber>\d*))?/;
+    const regex = /Glovo Purchase Order Planet Farms (?<orderMonth>\d{1,2})\/(?<orderDay>\d{1,2})\/(?<orderYear>\d{4}) \((?<warehouse>[\w\s]*)\)/;
     const details = {
       documentType: 'order',
       orderNumber: null,
-      delivery: null
+      orderDate: null,
+      delivery: null,
+      warehouse: null
     };
     const match = subject.match(regex);
     if (match) {
-      const { deliveryDay, deliveryMonth, orderNumber } = match.groups;
-      details.delivery = new Date(d.getFullYear(), parseInt(deliveryMonth) - 1, parseInt(deliveryDay), 10, 0, 0).toISOString().slice(0, 10);
-      details.orderNumber = orderNumber ? orderNumber : `Gorillas_${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}`;
+      const { orderDay, orderMonth, orderYear, warehouse } = match.groups;
+
+      const orderDate = new Date(parseInt(orderYear), parseInt(orderMonth) - 1, parseInt(orderDay), 10, 0);
+      let deliveryDate = new Date(orderDate);
+      deliveryDate.setDate(deliveryDate.getDate() + 1);
+
+      details.orderDate = orderDate.toISOString().slice(0, 10);
+      details.delivery = deliveryDate.toISOString().slice(0, 10);
+
+      details.orderNumber = `Glovo_${orderDate.getFullYear()}${(orderDate.getMonth() + 1).toString().padStart(2, '0')}${orderDate.getDate().toString().padStart(2, '0')}`;
+
+      const matchingWarehouse = warehouses.find(x => x.name.toUpperCase() === warehouse.toUpperCase());
+      if (matchingWarehouse) {
+        details.warehouse = {
+          address: matchingWarehouse.address,
+          from: matchingWarehouse.from,
+          to: matchingWarehouse.to
+        };
+        details.orderNumber += `_${warehouse.toUpperCase().replace(' ', '_')}`;
+      }
+
+      
     }
     return details;  
   };
@@ -49,7 +69,7 @@ module.exports = function(RED) {
 
   };
 
-  function GorillasXLSXNode(config) {
+  function GlovoXLSXNode(config) {
     RED.nodes.createNode(this, config);
 
     const node = this;
@@ -87,19 +107,19 @@ module.exports = function(RED) {
               context.status = Status.PROCESSING;
               setNodeStatus(node);
 
-              const { documentType, orderNumber, delivery } = getDetailsFromSubject(subject, date);
-              const order = await parseExcel(xlsx, products, warehouses, date);
+              const { documentType, orderNumber, orderDate, delivery, warehouse } = getDetailsFromSubject(subject, warehouses);
+              const order = await parseExcel(xlsx, products, warehouse);
 
               const document =  {
                 documentType,
                 date,
                 messageID,
                 payload: {
-                  customer: 'Gorillas',
+                  customer: 'Glovo',
                   anomalies: [],
                   overrides: false,
                   number: orderNumber,
-                  date: (new Date(date)).toISOString().slice(0, 10),
+                  date: (new Date(orderDate)).toISOString().slice(0, 10),
                   delivery,
                   destinations: [],
                   totals: order.totals
@@ -133,5 +153,5 @@ module.exports = function(RED) {
     });
   }
 
-  RED.nodes.registerType('gorillas-xlsx', GorillasXLSXNode);
+  RED.nodes.registerType('glovo-xlsx', GlovoXLSXNode);
 }
