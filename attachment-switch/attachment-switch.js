@@ -29,8 +29,9 @@ module.exports = function(RED) {
           if (rule) {
             return {
               port: rules.indexOf(rule),
-              customer: rule.name,
-              attachmentType: rule.attachment_type
+              name: rule.name,
+              attachmentType: rule.attachment_type ? rule.attachment_type : null,
+              regex: rule.regex ? rule.regex : null
             };  
           } else {
             return null;
@@ -67,21 +68,39 @@ module.exports = function(RED) {
 
           const rules = config.rules.map(x => JSON.parse(x));
           const customer = getCustomerFromAddress(msg.from, rules);
-          if (customer && customer.attachmentType) {
-            const attachment = extractAttachment(msg.attachments, customer.attachmentType);
-            if (attachment) {
-              const messages = new Array(rules.length);
+          if (customer) {
+
+            if (customer.regex) {
+              if (!msg.topic.match(customer.regex)) {
+                throw(`Customer ${customer.name} detected but the subject "${msg.topic}" doesn't match the regular expression "${customer.regex}".`);
+              }
+            }
+
+            const messages = new Array(rules.length);
+            if (customer.attachmentType) {
+              const attachment = extractAttachment(msg.attachments, customer.attachmentType);
+              if (attachment) {
+                messages[customer.port] = {
+                  payload: attachment.content,
+                  filename: attachment.filename,
+                  subject: msg.topic,
+                  date: +new Date(msg.date),
+                  messageID: msg.header['message-id']
+                };
+              } else {
+                throw(`Message with subject "${msg.topic}" received on ${msg.date} from ${msg.from} has no attachments`);
+              }
+            } else {
               messages[customer.port] = {
-                payload: attachment.content,
-                filename: attachment.filename,
+                payload: msg.payload ? msg.payload : msg.html,
                 subject: msg.topic,
                 date: +new Date(msg.date),
                 messageID: msg.header['message-id']
-              };
-              node.send(messages);
+              }
             }
+            node.send(messages);
           } else {
-            throw(new Error(`Message with subject "${msg.topic}" received on ${msg.date} from an unknown sender: ${msg.from}`));
+            throw(`Message with subject "${msg.topic}" received on ${msg.date} from an unknown sender: ${msg.from}`);
           }
 
         } catch (error) {

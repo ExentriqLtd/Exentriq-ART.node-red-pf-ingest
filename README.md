@@ -8,6 +8,7 @@ Node-RED nodes for Planet Farms business document ingestion automation.
 * Ortofin (Iper)
 * Rialto (Il Gigante)
 * Gorillas
+* Goodeat
 
 ## Elasticsearch configuration
 
