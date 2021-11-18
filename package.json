@@ -28,8 +28,9 @@
       "esselunga-pdf": "esselunga-pdf/esselunga-pdf.js",
       "ortofin-pdf": "ortofin-pdf/ortofin-pdf.js",
       "rialto-pdf": "rialto-pdf/rialto-pdf.js",
-      "gorillas-xslx": "gorillas-xlsx/gorillas-xlsx.js",
-      "goodeat-url": "goodeat-url/goodeat-url.js"
+      "gorillas-xlsx": "gorillas-xlsx/gorillas-xlsx.js",
+      "goodeat-url": "goodeat-url/goodeat-url.js",
+      "glovo-xlsx": "glovo-xlsx/glovo-xlsx.js"
     }
   }
 }

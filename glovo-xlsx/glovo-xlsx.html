@@ -1,38 +1,35 @@
 <script type="text/javascript">
 
-  const productsGorillas = [
-    { "code": "200004", "ean": "8059300850091", "customer_code": "A65002008", "description": "Yummix Delicato 80g", "boxItems": 8 },
-    { "code": "200002", "ean": "8059300850077", "customer_code": "A65003008", "description": "Yummix Orientale 80g", "boxItems": 8 },
-    { "code": "200003", "ean": "8059300850084", "customer_code": "A65004008", "description": "Yummix Piccante 80g", "boxItems": 8 },
-    { "code": "200000", "ean": "8059300850039", "customer_code": "A65001008", "description": "Lattugood 80g", "boxItems": 8 },
-    { "code": "200001", "ean": "80593008500??", "customer_code": "A6500????", "description": "Basilicooh 25g", "boxItems": 10 }
+  const productsGlovo = [
+    { "code": "200004", "ean": "8059300850091", "customer_code": "357306", "description": "Yummix Delicato 80g", "boxItems": 8 },
+    { "code": "200002", "ean": "8059300850077", "customer_code": "357307", "description": "Yummix Orientale 80g", "boxItems": 8 },
+    { "code": "200003", "ean": "8059300850084", "customer_code": "357308", "description": "Yummix Piccante 80g", "boxItems": 8 },
+    { "code": "200000", "ean": "8059300850039", "customer_code": "357305", "description": "Lattugood 80g", "boxItems": 8 },
+    { "code": "200001", "ean": "80593008500??", "customer_code": "??????", "description": "Basilicooh 25g", "boxItems": 10 }
   ];
 
-  const warehousesGorillas = [
-    { "name": "CARPI|LAMBRATE", "city": "Milano", "address": "Via Eugenio Carpi,13" },
-    { "name": "COLONNE",        "city": "Milano", "address": "Via Lesmi, 7" },
-    { "name": "DE ANGELI",      "city": "Milano", "address": "Via Lorenzetti, 4" },
-    { "name": "NAVIGLI",        "city": "Milano", "address": "Alzaia Naviglio Pavese, 20" },
-    { "name": "NOLO",           "city": "Milano", "address": "Via Marocco, 8" },
-    { "name": "PORTA ROMANA",   "city": "Milano", "address": "Via Tertulliano, 68" },
-    { "name": "PORTA VENEZIA",  "city": "Milano", "address": "Via Vittorio Veneto, 12" }
+  const warehousesGlovo = [
+    { "name": "FILZI",      "city": "Milano", "address": "Via Fabio Filzi, 8", "from": "08:00", "to": "13:00" },
+    { "name": "MANSUETO",   "city": "Milano", "address": "Via Privata Mansueto, 3", "from": "07:30", "to": "12:00" },
+    { "name": "CERESIO",    "city": "Milano", "address": "Via Farini, 3", "from": "07:30", "to": "12:00" },
+    { "name": "MONTE NERO", "city": "Milano", "address": "Viale Monte Nero, 72", "from": "07:30", "to": "12:00" }
   ];
  
-  RED.nodes.registerType('gorillas-xlsx', {
+  RED.nodes.registerType('glovo-xlsx', {
     category: 'Planet Farms',
     color: '#73938b',
     defaults: {
       name: { value: '' },
-      products: { value: JSON.stringify(productsGorillas) },
-      warehouses: { value: JSON.stringify(warehousesGorillas) }
+      products: { value: JSON.stringify(productsGlovo) },
+      warehouses: { value: JSON.stringify(warehousesGlovo) }
     },
     inputs: 1,
     outputs: 1,
-    icon: 'gorillas.svg',
+    icon: 'glovo.svg',
     label: function() {
-      return this.name || 'Gorillas';
+      return this.name || 'Glovo';
     },
-    paletteLabel: 'Gorillas',
+    paletteLabel: 'Glovo',
     oneditprepare: function() {
       $("#node-input-products").typedInput({
         type:"json",
@@ -46,7 +43,7 @@
   });
 </script>
     
-  <script type="text/html" data-template-name="gorillas-xlsx">
+  <script type="text/html" data-template-name="glovo-xlsx">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -61,8 +58,8 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="gorillas-xlsx">
-    <p>Parses business documents (orders, confirmations etc.), coming from <strong>Gorillas</strong> in Excel format, to extract information.</p>
+  <script type="text/html" data-help-name="glovo-xlsx">
+    <p>Parses business documents (orders, confirmations etc.), coming from <strong>Glovo</strong> in Excel format, to extract information.</p>
     
     <h3>Inputs</h3>
       <dl class="message-properties">

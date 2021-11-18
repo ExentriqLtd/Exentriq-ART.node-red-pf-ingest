@@ -9,6 +9,7 @@ Node-RED nodes for Planet Farms business document ingestion automation.
 * Rialto (Il Gigante)
 * Gorillas
 * Goodeat
+* Glovo
 
 ## Elasticsearch configuration
 
