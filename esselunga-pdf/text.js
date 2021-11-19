@@ -446,7 +446,7 @@ const analyzeConfirmation = (options) => {
     if (fixedBoxes) {
       confirmation.totals.boxes = fixedBoxes;
     } else {
-      confirmation.anomalies.push(`box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`);
+      confirmation.anomalies.push(`Box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`);
     }
   }
 
