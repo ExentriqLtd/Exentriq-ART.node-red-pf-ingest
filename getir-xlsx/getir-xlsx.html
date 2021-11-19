@@ -1,38 +1,39 @@
 <script type="text/javascript">
 
-  const productsGorillas = [
-    { "code": "200004", "ean": "8059300850091", "customer_code": "A65002008", "description": "Yummix Delicato 80g", "boxItems": 8 },
-    { "code": "200002", "ean": "8059300850077", "customer_code": "A65003008", "description": "Yummix Orientale 80g", "boxItems": 8 },
-    { "code": "200003", "ean": "8059300850084", "customer_code": "A65004008", "description": "Yummix Piccante 80g", "boxItems": 8 },
-    { "code": "200000", "ean": "8059300850039", "customer_code": "A65001008", "description": "Lattugood 80g", "boxItems": 8 },
-    { "code": "200001", "ean": "80593008500??", "customer_code": "A6500????", "description": "Basilicooh 25g", "boxItems": 10 }
+  const productsGetir = [
+    { "code": "200004", "ean": "8059300850091", "customer_code": "61841ce35b8aff34bfb09a51", "description": "Yummix Delicato 80g", "boxItems": 8 },
+    { "code": "200002", "ean": "8059300850077", "customer_code": "618418191daf7f4765348223", "description": "Yummix Orientale 80g", "boxItems": 8 },
+    { "code": "200003", "ean": "8059300850084", "customer_code": "61841b0564db5d40bfb1a1fa", "description": "Yummix Piccante 80g", "boxItems": 8 },
+    { "code": "200000", "ean": "8059300850039", "customer_code": "618409211daf7fb51e348209", "description": "Lattugood 80g", "boxItems": 8 },
+    { "code": "200001", "ean": "80593008500??", "customer_code": "6184????????????????????", "description": "Basilicooh 25g", "boxItems": 10 }
   ];
 
-  const warehousesGorillas = [
-    { "name": "CARPI|LAMBRATE", "city": "Milano", "address": "Via Eugenio Carpi, 13" },
-    { "name": "COLONNE",        "city": "Milano", "address": "Via Lesmi, 7" },
-    { "name": "DE ANGELI",      "city": "Milano", "address": "Via Lorenzetti, 4" },
-    { "name": "NAVIGLI",        "city": "Milano", "address": "Alzaia Naviglio Pavese, 20" },
-    { "name": "NOLO",           "city": "Milano", "address": "Via Marocco, 8" },
-    { "name": "PORTA ROMANA",   "city": "Milano", "address": "Via Tertulliano, 68" },
-    { "name": "PORTA VENEZIA",  "city": "Milano", "address": "Via Vittorio Veneto, 12" }
+  const warehousesGetir = [
+    { "name": "TORTONA",     "city": "Milano", "address": "Via Cerano, 12" },
+    { "name": "GARIBALDI",   "city": "Milano", "address": "Via Tazzoli, 11" },
+    { "name": "MONFORTE",    "city": "Milano", "address": "Via Corridoni, 5" },
+    { "name": "CASORETTO",   "city": "Milano", "address": "Via Teodosio, 64" },
+    { "name": "STADERA",     "city": "Milano", "address": "Via Palmieri, 29" },
+    { "name": "CRESCENZAGO", "city": "Milano", "address": "Via Angelo Emo, 10" },
+    { "name": "CORVETTO",    "city": "Milano", "address": "Via Bessarione, 5" },
+    { "name": "GALLARATESE", "city": "Milano", "address": "Indirizzo sconosciuto" }
   ];
  
-  RED.nodes.registerType('gorillas-xlsx', {
+  RED.nodes.registerType('getir-xlsx', {
     category: 'Planet Farms',
     color: '#73938b',
     defaults: {
       name: { value: '' },
-      products: { value: JSON.stringify(productsGorillas) },
-      warehouses: { value: JSON.stringify(warehousesGorillas) }
+      products: { value: JSON.stringify(productsGetir) },
+      warehouses: { value: JSON.stringify(warehousesGetir) }
     },
     inputs: 1,
     outputs: 1,
-    icon: 'gorillas.svg',
+    icon: 'getir.svg',
     label: function() {
-      return this.name || 'Gorillas';
+      return this.name || 'Getir';
     },
-    paletteLabel: 'Gorillas',
+    paletteLabel: 'Getir',
     oneditprepare: function() {
       $("#node-input-products").typedInput({
         type:"json",
@@ -46,7 +47,7 @@
   });
 </script>
     
-  <script type="text/html" data-template-name="gorillas-xlsx">
+  <script type="text/html" data-template-name="getir-xlsx">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -61,8 +62,8 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="gorillas-xlsx">
-    <p>Parses business documents (orders, confirmations etc.), coming from <strong>Gorillas</strong> in Excel format, to extract information.</p>
+  <script type="text/html" data-help-name="getir-xlsx">
+    <p>Parses business documents (orders, confirmations etc.), coming from <strong>Getir</strong> in Excel format, to extract information.</p>
     
     <h3>Inputs</h3>
       <dl class="message-properties">

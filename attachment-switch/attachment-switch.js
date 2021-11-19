@@ -52,7 +52,7 @@ module.exports = function(RED) {
         case 'pdf':
           attachment = attachments.find(x => (x.contentType === 'application/pdf' && x.size > 0));
           break;
-        case 'xslx':
+        case 'xlsx':
           attachment = attachments.find(x => (x.contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && x.size > 0));
           break;
         default:

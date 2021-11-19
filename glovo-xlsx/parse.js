@@ -70,7 +70,7 @@ const parseExcel = async (xlsx, products, warehouse) => {
         return order;
   
       } else {
-        throw('Excel columns are not in an unknown format')
+        throw('Unknown Excel columns disposition');
       }
   
     } else {
