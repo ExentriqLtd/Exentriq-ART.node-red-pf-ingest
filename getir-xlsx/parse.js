@@ -42,42 +42,44 @@ const parseExcel = async (xlsx, products, warehouses, date) => {
     const destinations = [];
 
     for (let index = fieldMap.boxItems + 1; index < headers.length; index++) {
-      const warehouseIndex = warehouses.map(x => x.name.toLowerCase()).findIndex(x => x === headers[index].trim().toLowerCase());
-      if (warehouseIndex > -1) {
-
-        const destination = {
-          name: warehouses[warehouseIndex].name,
-          address: warehouses[warehouseIndex].address,
-          from: null,
-          to: null,
-          products: [],
-          readBoxTotal: 0
-        };
+      if (headers[index].trim().toLowerCase() !== 'grand total') {
+        const warehouseIndex = warehouses.map(x => x.name.toLowerCase()).findIndex(x => x === headers[index].trim().toLowerCase());
+        if (warehouseIndex > -1) {
   
-        for (const row of rows.slice(1)) {          
-          const product = matchingProductByCustomerCode(row[fieldMap.productCode], products);
-          if (product) {
-  
-            const boxes = parseInt(row[index]);
-            const items = boxes * product.boxItems;
-  
-            destination.products.push({
-              code: product.code,
-              ean: product.ean,
-              customer_code: product.customer_code,
-              description: product.description,
-              boxes,
-              items
-            })   
-          } else if (row[fieldMap.productCode] === 'Grand Total') {
-            destination.readBoxTotal = parseInt(row[index]);
-          } else {
-            throw(`Unknown product code found: "${row[fieldMap.productCode]}"`)
+          const destination = {
+            name: warehouses[warehouseIndex].name,
+            address: warehouses[warehouseIndex].address,
+            from: null,
+            to: null,
+            products: [],
+            readBoxTotal: 0
+          };
+    
+          for (const row of rows.slice(1)) {          
+            const product = matchingProductByCustomerCode(row[fieldMap.productCode], products);
+            if (product) {
+    
+              const boxes = parseInt(row[index]);
+              const items = boxes * product.boxItems;
+    
+              destination.products.push({
+                code: product.code,
+                ean: product.ean,
+                customer_code: product.customer_code,
+                description: product.description,
+                boxes,
+                items
+              })   
+            } else if (row[fieldMap.productCode].toLowerCase() === 'grand total') {
+              destination.readBoxTotal = parseInt(row[index]);
+            } else {
+              throw(`Unknown product code found: "${row[fieldMap.productCode]}"`)
+            }
           }
+          destinations.push(destination);
+        } else {
+          throw(`Unknown warehouse found: "${headers[index]}"`);
         }
-        destinations.push(destination);
-      } else {
-        throw(`Unknown warehouse found: "${header}"`);
       }
     }
   

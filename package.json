@@ -32,7 +32,8 @@
       "goodeat-url": "goodeat-url/goodeat-url.js",
       "glovo-xlsx": "glovo-xlsx/glovo-xlsx.js",
       "getir-xlsx": "getir-xlsx/getir-xlsx.js",
-      "helbiz-eml": "helbiz-eml/helbiz-eml.js"
+      "helbiz-eml": "helbiz-eml/helbiz-eml.js",
+      "dimar-pdf": "dimar-pdf/dimar-pdf.js"
     }
   }
 }

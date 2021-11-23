@@ -11,6 +11,7 @@ Node-RED nodes for Planet Farms business document ingestion automation.
 * Goodeat
 * Glovo
 * Getir
+* Dimar
 
 ## Elasticsearch configuration
 
