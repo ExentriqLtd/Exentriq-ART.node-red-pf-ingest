@@ -7,7 +7,7 @@ const regexes = {
 
 const today = new Date();
 
-const parseMessage = (body, subject, date, products) => {
+const parseMessage = (body, subject, date, products, warehouses) => {
 
   const messageDate = new Date(date);
 
@@ -18,7 +18,7 @@ const parseMessage = (body, subject, date, products) => {
     anomalies: [],
     destinations: [
       {
-        address: null,
+        address: `${warehouses[0].address} - ${warehouses[0].city}`,
         from: null,
         to: null,
         products: []
@@ -56,6 +56,7 @@ const parseMessage = (body, subject, date, products) => {
         order.destinations[0].products.push({
           code: product.code,
           ean: product.ean,
+          customer_code: product.customer_code,
           description: product.description,
           boxes,
           items

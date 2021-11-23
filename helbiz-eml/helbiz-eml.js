@@ -42,6 +42,7 @@ module.exports = function(RED) {
     setNodeStatus(node);
 
     const products = JSON.parse(config.products);
+    const warehouses = JSON.parse(config.warehouses);
 
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
@@ -65,7 +66,7 @@ module.exports = function(RED) {
               context.status = Status.PROCESSING;
               setNodeStatus(node);
 
-              const order = await parseMessage(body, subject, date, products);
+              const order = await parseMessage(body, subject, date, products, warehouses);
               const document =  {
                 documentType: 'order',
                 date,

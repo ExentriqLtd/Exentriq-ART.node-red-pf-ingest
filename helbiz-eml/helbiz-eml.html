@@ -7,13 +7,18 @@
     { code: '200000', ean: '8059300850039', customer_code: '8059300850039', description: 'Lattugood 80g', boxItems: 8 },
     { code: '200001', ean: '80593008500??', customer_code: '80593008500??', description: 'Basilicooh 25g', boxItems: 10 }
   ];
+
+  const warehousesHelbiz = [
+    { name: 'COSTANZA', city: 'Milano', address: 'Via Costanza, 1' }
+  ];
  
   RED.nodes.registerType('helbiz-eml', {
     category: 'Planet Farms',
     color: '#73938b',
     defaults: {
       name: { value: '' },
-      products: { value: JSON.stringify(productsHelbiz) }
+      products: { value: JSON.stringify(productsHelbiz) },
+      warehouses: { value: JSON.stringify(warehousesHelbiz) }
     },
     inputs: 1,
     outputs: 1,
@@ -24,6 +29,10 @@
     paletteLabel: 'Helbiz',
     oneditprepare: function() {
       $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+      $("#node-input-warehouses").typedInput({
         type:"json",
         types:["json"]
       });
@@ -39,6 +48,10 @@
     <div class="form-row">
       <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
       <input type="text" id="node-input-products">
+    </div>
+    <div class="form-row">
+      <label for="node-input-warehouses"><i class="fa fa-database"></i> Warehouses</label>
+      <input type="text" id="node-input-warehouses">
     </div>
   </script>
   
