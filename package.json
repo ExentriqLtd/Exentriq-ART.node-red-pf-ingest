@@ -31,7 +31,8 @@
       "gorillas-xlsx": "gorillas-xlsx/gorillas-xlsx.js",
       "goodeat-url": "goodeat-url/goodeat-url.js",
       "glovo-xlsx": "glovo-xlsx/glovo-xlsx.js",
-      "getir-xlsx": "getir-xlsx/getir-xlsx.js"
+      "getir-xlsx": "getir-xlsx/getir-xlsx.js",
+      "dimar-pdf": "dimar-pdf/dimar-pdf.js"
     }
   }
 }
