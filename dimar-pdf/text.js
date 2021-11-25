@@ -310,7 +310,8 @@ const analyzeConfirmation = (text, products, filename) => {
           description: product.description,
           boxes,
           items,
-          unit_cost: parseFloat(matches.product.groups.unitCost.replace(',', '.'))
+          unit_cost: parseFloat(matches.product.groups.unitCost.replace(',', '.')),
+          total_cost: parseFloat(matches.product.groups.cost.replace(',', '.'))
         })
         confirmation.totals.boxes += boxes;
         confirmation.totals.items += items;
