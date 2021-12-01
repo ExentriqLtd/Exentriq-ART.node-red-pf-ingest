@@ -1,7 +1,7 @@
 
 const regexes = {
-  deliverySubject: /ordine helbiz per \w{3} (?<day>\d{1,2})\/(?<month>\d{1,2})/,
-  deliveryBody: /consegna per \w{3} (?<day>\d{1,2})\/(?<month>\d{1,2})/,
+  deliverySubject: /ordine helbiz(?:\s*per\s*)*(?:\s*n\.\s*\d*\s*)*(?:\s*-\s*)*[a-z]{0,3}\s*(?<day>\d{1,2})\/(?<month>\d{1,2})/,
+  deliveryBody: /consegna(?:\s*per\s*)*\s*\w{3}\s*(?<day>\d{1,2})\/(?<month>\d{1,2})/,
   product: /\-\s*(?<description>.*):\s*(?<boxes>\d{1,2})\s*ct/
 }
 
