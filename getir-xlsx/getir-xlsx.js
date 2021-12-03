@@ -15,7 +15,7 @@ module.exports = function(RED) {
 
   const getDetailsFromSubject = (subject) => {
 
-    const regex = /- Getir order (?<orderDay>\d{1,2})\.(?<orderMonth>\d{1,2})\.(?<orderYear>\d{4})/;
+    const regex = /- Getir order (?<orderDay>\d{1,2})\.(?<orderMonth>\d{1,2})(?:\.(?<orderYear>\d{2,4}))*/;
     const details = {
       documentType: 'order',
       orderNumber: null,
@@ -25,7 +25,13 @@ module.exports = function(RED) {
     const match = subject.match(regex);
     if (match) {
 
-      const { orderDay, orderMonth, orderYear } = match.groups;
+      let { orderDay, orderMonth, orderYear } = match.groups;
+
+      if (!orderYear) {
+        orderYear = (new Date()).getFullYear();
+      } else if (parseInt(orderYear) < 100) {
+        orderYear = 2000 + parseInt(orderYear);
+      }
 
       const orderDate = new Date(parseInt(orderYear), parseInt(orderMonth) - 1, parseInt(orderDay), 10, 0);
       let deliveryDate = new Date(orderDate);
