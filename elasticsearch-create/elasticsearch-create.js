@@ -30,7 +30,7 @@ module.exports = function(RED) {
             elasticsearchMessage = {
               id: uuidv4(),
               index: node.elasticsearch.index,
-              refresh: true,
+              refresh: false,
               body: node.bodyType === 'msg' ? msg[node.body] : node.body
             }
             break;
@@ -38,7 +38,7 @@ module.exports = function(RED) {
             elasticsearchMessage = {
               id: msg.messageID,
               index: node.elasticsearch.index,
-              refresh: true,
+              refresh: false,
               body: {
                 uuid: uuidv4(),
                 plant: node.plant.toLowerCase(),
