@@ -1,6 +1,6 @@
 {
   "name": "pf-ingest",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Node-RED nodes to manage order ingestion",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -31,6 +31,7 @@
       "gorillas-xlsx": "gorillas-xlsx/gorillas-xlsx.js",
       "goodeat-url": "goodeat-url/goodeat-url.js",
       "glovo-xlsx": "glovo-xlsx/glovo-xlsx.js",
+      "glovo-pdf": "glovo-pdf/glovo-pdf.js",
       "getir-xlsx": "getir-xlsx/getir-xlsx.js",
       "helbiz-eml": "helbiz-eml/helbiz-eml.js",
       "dimar-pdf": "dimar-pdf/dimar-pdf.js"
