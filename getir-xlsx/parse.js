@@ -42,8 +42,8 @@ const parseExcel = async (xlsx, products, warehouses, date) => {
     const destinations = [];
 
     for (let index = fieldMap.boxItems + 1; index < headers.length; index++) {
-      if (headers[index].trim().toLowerCase() !== 'grand total') {
-        const warehouseIndex = warehouses.map(x => x.name.toLowerCase()).findIndex(x => x === headers[index].trim().toLowerCase());
+      if (!headers[index].trim().toLowerCase().startsWith('grand total')) {
+        const warehouseIndex = warehouses.map(x => x.name.toLowerCase()).findIndex(x => x.split('|').indexOf(headers[index].trim().toLowerCase()) > -1);
         if (warehouseIndex > -1) {
   
           const destination = {
