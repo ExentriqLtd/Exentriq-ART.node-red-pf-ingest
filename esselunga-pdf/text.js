@@ -17,7 +17,7 @@ const regexes = {
     number: /ORDINE NR. (?<number>\w\/[\d\/B]*)/,
     products: /(?<code>[\d\/B]{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>[\d\/B]*)\s*(?<items>[\d\/B\.]*)\s{5,}(?<unitCost>[\d\/B]{1,2},\s{0,1}[\d\/B]{2,})\s*(?<totalCost>[\d\/B\.]*,\s{0,1}[\d\/B]{3,})/g,
     totals: /\n(?<boxTotal>[\d\/B]*)\s{1,}(?<itemTotal>[\d\/B\.]*)\s{5,}(?<costTotal>[\d\.\/B]*,\/{0,1}\s{0,1}[\d\/B]{2,})\nSi prega di verificare/,
-    date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/B]{2,}) (?<month>\w*) (?<year>[\d\/B]{4})/
+    date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/B]{2,})\s*(?<month>\w*)\s*(?<year>[\d\/B]{4})/
   }
 };
 
