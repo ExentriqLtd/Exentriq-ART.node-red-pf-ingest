@@ -46,19 +46,19 @@ module.exports = function(RED) {
       return null;
     };
 
-    const extractAttachment = (attachments, attachmentType) => {
-      let attachment;
+    const extractAttachments = (attachments, attachmentType) => {
+      let validAttachments;
       switch (attachmentType.toLowerCase()) {
         case 'pdf':
-          attachment = attachments.find(x => (x.contentType === 'application/pdf' && x.size > 0));
+          validAttachments = attachments.filter(x => (x.contentType === 'application/pdf' && x.size > 0));
           break;
         case 'xlsx':
-          attachment = attachments.find(x => (x.contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && x.size > 0));
+          validAttachments = attachments.filter(x => (x.contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && x.size > 0));
           break;
         default:
           break;
       }
-      return attachment;
+      return validAttachments;
     };
 
 
@@ -78,26 +78,30 @@ module.exports = function(RED) {
 
             const messages = new Array(rules.length);
             if (customer.attachmentType) {
-              const attachment = extractAttachment(msg.attachments, customer.attachmentType);
-              if (attachment) {
-                messages[customer.port] = {
-                  payload: attachment.content,
-                  filename: attachment.filename,
-                  subject: msg.topic,
-                  date: +new Date(msg.date),
-                  messageID: msg.header['message-id']
-                };
+              const attachments = extractAttachments(msg.attachments, customer.attachmentType);
+              if (attachments.length > 0) {
+                messages[customer.port] = [];
+                for (const attachment of attachments) {
+                  messages[customer.port].push({
+                    payload: attachment.content,
+                    filename: attachment.filename,
+                    subject: msg.topic,
+                    date: +new Date(msg.date),
+                    messageID: msg.header['message-id']
+                  });
+                }
               } else {
                 throw(`Message with subject "${msg.topic}" received on ${msg.date} from ${msg.from} has no attachments`);
               }
             } else {
-              messages[customer.port] = {
+              messages[customer.port].push({
                 payload: msg.payload ? msg.payload : msg.html,
                 subject: msg.topic,
                 date: +new Date(msg.date),
                 messageID: msg.header['message-id']
-              }
+              });
             }
+
             node.send(messages);
           } else {
             throw(`Message with subject "${msg.topic}" received on ${msg.date} from an unknown sender: ${msg.from}`);
