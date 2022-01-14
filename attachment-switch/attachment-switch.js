@@ -5,18 +5,18 @@ module.exports = function(RED) {
 
     const node = this;
 
-    const getCustomerFromAddress = (address, rules) => {
+    const getSenderFromAddress = (address, rules) => {
 
       if (rules.length === 0) {
-        throw(new Error('No customers configured'));
+        throw(new Error('No senders configured'));
       }
 
       for (const rule of rules) {
         if (!rule.name) {
-          throw(new Error(`At least one customer has no name`));
+          throw(new Error(`At least one sender has no name`));
         }
         if (!rule.domains || rule.domains.length === 0) {
-          throw(new Error(`Domains are not configured for customer ${rule.name}`));
+          throw(new Error(`Domains are not configured for sender ${rule.name}`));
         }
       }
 
@@ -67,22 +67,22 @@ module.exports = function(RED) {
       try {
 
           const rules = config.rules.map(x => JSON.parse(x));
-          const customer = getCustomerFromAddress(msg.from, rules);
-          if (customer) {
+          const sender = getSenderFromAddress(msg.from, rules);
+          if (sender) {
 
-            if (customer.regex) {
-              if (!msg.topic.match(customer.regex)) {
-                throw(`Customer ${customer.name} detected but the subject "${msg.topic}" doesn't match the regular expression "${customer.regex}".`);
+            if (sender.regex) {
+              if (!msg.topic.match(sender.regex)) {
+                throw(`Sender ${sender.name} detected but the subject "${msg.topic}" doesn't match the regular expression "${sender.regex}".`);
               }
             }
 
             const messages = new Array(rules.length);
-            if (customer.attachmentType) {
-              const attachments = extractAttachments(msg.attachments, customer.attachmentType);
+            if (sender.attachmentType) {
+              const attachments = extractAttachments(msg.attachments, sender.attachmentType);
               if (attachments.length > 0) {
-                messages[customer.port] = [];
+                messages[sender.port] = [];
                 for (const attachment of attachments) {
-                  messages[customer.port].push({
+                  messages[sender.port].push({
                     body: msg.payload ? msg.payload : msg.html,
                     payload: attachment.content,
                     filename: attachment.filename,
@@ -95,7 +95,7 @@ module.exports = function(RED) {
                 throw(`Message with subject "${msg.topic}" received on ${msg.date} from ${msg.from} has no attachments`);
               }
             } else {
-              messages[customer.port].push({
+              messages[sender.port].push({
                 body: msg.payload ? msg.payload : msg.html,
                 subject: msg.topic,
                 date: +new Date(msg.date),
