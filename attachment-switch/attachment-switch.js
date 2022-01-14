@@ -83,6 +83,7 @@ module.exports = function(RED) {
                 messages[customer.port] = [];
                 for (const attachment of attachments) {
                   messages[customer.port].push({
+                    body: msg.payload ? msg.payload : msg.html,
                     payload: attachment.content,
                     filename: attachment.filename,
                     subject: msg.topic,
@@ -95,7 +96,7 @@ module.exports = function(RED) {
               }
             } else {
               messages[customer.port].push({
-                payload: msg.payload ? msg.payload : msg.html,
+                body: msg.payload ? msg.payload : msg.html,
                 subject: msg.topic,
                 date: +new Date(msg.date),
                 messageID: msg.header['message-id']
