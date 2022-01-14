@@ -7,8 +7,10 @@
       name: { value: '' },
       elasticsearch: { value: '', type: 'elasticsearch-config' },
       mode: { value: 'structured' },
-      plant: { value: ''},
+      plant: { value: '' },
+      plantType: { value: 'msg' },
       service: { value: '' },
+      serviceType: { value: 'str' },
       doctype: { value: 'documentType' },
       doctypeType: { value: 'msg' },
       entity: { value: 'payload' },
@@ -30,29 +32,35 @@
         $('.node-row-mode-flat').toggle(val === 'flat');
       });
       $('#node-input-plant').typedInput({
-        types: [
-          {
-            value: 'plant',
-            options: [
-              { value: 'pf', label: 'Planet Farms - generic' },
-              { value: 'are01', label: 'Arese 1' },
-              { value: 'cav01', label: 'Cavenago 1' },
-              { value: 'cav02', label: 'Cavenago 2' },
-              { value: 'cib01', label: 'Cinisello Balsamo 1' }
-            ]
-          }
-        ]
+        // types: [
+        //   {
+        //     value: 'plant',
+        //     options: [
+        //       { value: 'pf', label: 'Planet Farms - generic' },
+        //       { value: 'are01', label: 'Arese 1' },
+        //       { value: 'cav01', label: 'Cavenago 1' },
+        //       { value: 'cav02', label: 'Cavenago 2' },
+        //       { value: 'cib01', label: 'Cinisello Balsamo 1' }
+        //     ]
+        //   }
+        // ]
+        default: 'str',
+        types: ['msg', 'str'],
+        typeField: '#node-input-plantType'
       });
       $('#node-input-service').typedInput({
-        types: [
-          {
-            value: 'service',
-            options: [
-              { value: 'analysis', label: 'Analysis'},
-              { value: 'sales', label: 'Sales' }
-            ]
-          }
-        ]
+        // types: [
+        //   {
+        //     value: 'service',
+        //     options: [
+        //       { value: 'analysis', label: 'Analysis'},
+        //       { value: 'sales', label: 'Sales' }
+        //     ]
+        //   }
+        // ]
+        default: 'str',
+        types: ['msg', 'str'],
+        typeField: '#node-input-serviceType'
       });
       $('#node-input-doctype').typedInput({
         default: 'msg',
@@ -97,10 +105,12 @@
     <div class="form-row">
       <label for="node-input-plant"><i class="fa fa-leaf"></i> Plant</label>
       <input type="text" id="node-input-plant" placeholder="Plant">
+      <input type="hidden" id="node-input-plantType">
     </div>
     <div class="form-row">
       <label for="node-input-service"><i class="fa fa-cogs"></i> Service</label>
       <input type="text" id="node-input-service" placeholder="Service">
+      <input type="hidden" id="node-input-serviceType">
     </div>
     <div class="form-row">
       <label for="node-input-doctype"><i class="fa fa-file-code-o"></i> Type</label>

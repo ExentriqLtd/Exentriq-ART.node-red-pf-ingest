@@ -8,7 +8,9 @@ module.exports = function(RED) {
 
     this.elasticsearch = RED.nodes.getNode(config.elasticsearch);
     this.plant = config.plant;
+    this.plantType = config.plantType
     this.service = config.service;
+    this.serviceType = config.serviceType;
     this.doctype = config.doctype;
     this.doctypeType = config.doctypeType;
     this.entity= config.entity;
@@ -41,8 +43,8 @@ module.exports = function(RED) {
               refresh: false,
               body: {
                 uuid: uuidv4(),
-                plant: node.plant.toLowerCase(),
-                service: node.service.toLowerCase(),
+                plant: node.plantType === 'msg' ? msg[node.plant] : node.plant.toLowerCase(),
+                service: node.serviceType === 'msg' ? msg[node.service] : node.service.toLowerCase(),
                 type: node.doctypeType === 'msg' ? msg[node.doctype] : node.doctype,
                 timestamp: msg.date,
                 entity: node.entityType === 'msg' ? msg[node.entity] : node.entity
