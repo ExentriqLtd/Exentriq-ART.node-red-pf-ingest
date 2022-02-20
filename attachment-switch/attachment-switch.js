@@ -75,12 +75,11 @@ module.exports = function(RED) {
                 throw(`Sender ${sender.name} detected but the subject "${msg.topic}" doesn't match the regular expression "${sender.regex}".`);
               }
             }
-
             const messages = new Array(rules.length);
+            messages[sender.port] = [];
             if (sender.attachmentType) {
               const attachments = extractAttachments(msg.attachments, sender.attachmentType);
               if (attachments.length > 0) {
-                messages[sender.port] = [];
                 for (const attachment of attachments) {
                   messages[sender.port].push({
                     body: msg.payload ? msg.payload : msg.html,

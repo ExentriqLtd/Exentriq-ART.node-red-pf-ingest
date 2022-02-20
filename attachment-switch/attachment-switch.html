@@ -1,9 +1,16 @@
 <script type="text/javascript">
 
   const defaultRules = [
-    { name: 'Esselunga', domains: [ 'esselunga.it' ] },
-    { name: 'Ortofin',   domains: [ 'ortofin.it' ] },
-    { name: 'Rialto',    domains: [ 'ilgigante.net' ] }
+    { name: 'Esselunga', domains: [ 'esselunga.it' ], attachment_type: 'pdf' },
+    { name: 'Ortofin',   domains: [ 'ortofin.it' ], attachment_type: 'pdf' },
+    { name: 'Rialto',    domains: [ 'ilgigante.net' ], attachment_type: 'pdf' },
+    { name: 'Gorillas',  domains: [ 'gorillasapp.com', 'gorillas.io' ], attachment_type: 'xlsx' },
+    { name: 'Goodeat',   domains: [ 'marketman.com' ], regex: 'Order number \\d* from Laboratorio Goodeat' },
+    { name: 'Goodeat',   domains: [ 'goodeat.it' ], attachment_type: 'pdf' },
+    { name: 'Glovo',     domains: [ 'glovoapp.com' ], attachment_type: 'pdf' },
+    { name: 'Getir',     domains: [ 'getir.com' ], regex: '- Getir order \\d{1,2}\\.\\d{1,2}', attachment_type: 'xlsx' },
+    { name: 'Helbiz',    domains: [ 'helbiz.com' ], regex: 'ORDINE HELBIZ' },
+    { name: 'Dimar',     domains: [ 'dimar.it' ], attachment_type: 'pdf' },
   ];
 
   RED.nodes.registerType('attachment-switch', {
