@@ -1,0 +1,83 @@
+<script type="text/javascript">
+
+  function validate(v) {
+    if ($('#node-input-pagemode').val() !== 'range') {
+      return true;
+    }
+    try {
+      const from = $('#node-input-pagefrom').val();
+      const to = $('#node-input-pageto').val();
+      return (parseInt(from) <= parseInt(to));
+    } catch(e) {
+      return false;
+    }
+  }
+
+  RED.nodes.registerType('pdf-extract', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      pagemode: { value: 'all' },
+      pagefrom: { value: '', validate },
+      pageto: { value: '', validate },
+      groupbyrow: { value: false }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'pdf.svg',
+    label: function() {
+      return this.name || 'pdf extract';
+    },
+    paletteLabel: 'pdf extract',
+    oneditprepare: function() {
+      $('#node-input-pagemode').on('change', function(e) {
+        const val = $(this).val();
+        $('.node-row-pagemode-range').toggle(val === 'range');
+      });
+    }
+  });
+  </script>
+  
+<script type="text/html" data-template-name="pdf-extract">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-pagemode"><i class="fa fa-copy"></i> Pages</label>
+    <select type="text" id="node-input-pagemode" style="width: 300px;">
+        <option value="all">All</option>
+        <option value="first">First</option>
+        <option value="range">Range</option>
+    </select>
+  </div>
+  <div class="node-row-pagemode-range">
+    <div class="form-row">
+      <label></label>
+      from: <input type="text" id="node-input-pagefrom" style="width:100px;"/>
+      &nbsp;&nbsp;to: <input type="text" id="node-input-pageto" style="width:100px;"/>
+    </div>
+  </div>
+  <div class="form-row">
+    <input type="checkbox" id="node-input-groupbyrow" style="display: inline-block; width: auto; vertical-align: top; margin-left: 105px; margin-right: 5px;">
+    <label for="node-input-groupbyrow" style="width: auto">Group by Row</label>
+  </div>
+
+</script>
+
+<script type="text/html" data-help-name="pdf-extract">
+  <p>Extract text from a PDF.</p>
+  
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+      <dt>payload<span class="property-type">buffer</span></dt>
+      <dd>The PDF content.</dd>
+  </dl>
+    
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload<span class="property-type">string</span></dt>
+    <dd>The extracted text.</dd>
+</dl>
+</script>

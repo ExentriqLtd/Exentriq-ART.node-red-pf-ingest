@@ -9,6 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "@elastic/elasticsearch": "^7.15.0",
+    "pdfjs-dist": "2.10.377",
     "uuid": "^8.3.2"
   },
   "node-red": {
@@ -16,7 +17,8 @@
       "attachment-switch": "attachment-switch/attachment-switch.js",
       "elasticsearch-config": "elasticsearch-config/elasticsearch-config.js",
       "elasticsearch-create": "elasticsearch-create/elasticsearch-create.js",
-      "elasticsearch-search": "elasticsearch-search/elasticsearch-search.js"
+      "elasticsearch-search": "elasticsearch-search/elasticsearch-search.js",
+      "pdf-extract": "pdf-extract/pdf-extract.js"
     }
   }
 }
